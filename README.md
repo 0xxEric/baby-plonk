@@ -1,345 +1,376 @@
-# Baby Plonk
+# Plonk学习笔记分享
+## 前言
+学习完郭老师的Plonk系列，并且跟着各位老师在本期共学社学习了一遍，对Plonk有一些基本的认识，于是想对本次学习内容做个整理。  
 
-## Why this project
-Baby Plonk is an educational version of the Plonk protocol designed to assist beginners in comprehending its fundamental principles.
+因为我自己是初学小白（在本次学习之前完全零基础，亦非Web3背景），学习Plonk经历过从0开始的这个阶段。因此，在整理笔记，也想可以对同样零基础小白的同学有所帮助。因此在写的过程中将内容重新做了梳理、在自己原计划的基础上做了一些扩充。可能对于已经熟悉的同学而言，内容及行文略显啰嗦。  
 
-Baby Plonk, succeeding from the [PlonKathon](https://github.com/0xPARC/plonkathon) and was subsequently modified to align with the material presented in the first 4 articles of [Understanding Plonk Protocol](https://github.com/sec-bit/learning-zkp/blob/develop/plonk-intro-cn/README.md).
+## 一、问题场景
+Prover要向Verify证明，自己知道一个输入x=（x1,x2,x3,x4)，可以使得  
+(x1+x2)* x3*x4=out。
+例如：Prover知道x=（1,2,4,5）的输入，由这个输入可以得到out=60的输入。  
 
-By simplifying the implementation for educational purposes, efficiency is lost to a certain degree but left to the individual to prioritize according to one’s needs.
+当我把这个场景向原来的同事分享时，对方表示出难以置信的大笑：“这个还要证明？把它的输入给计算机，让程序算一遍不就知道了吗？”OK，在我自己完全不了解ZKP的背景前，我也是这样的反应：感觉是一个很瓜、很奇怪的问题。
 
-As of now, we have implemented prover and verifier, and is on track to continue on polynomial commitment with articles of [Understanding Plonk Protocol](https://github.com/sec-bit/learning-zkp/blob/develop/plonk-intro-cn/README.md).
+重点来了！这的任务是：需要将Prover知道的输入x（视为一个知识）向Verifer保密，使得在Verifer不知道输入具体是什么的情况，仍然相应这个输入满足（x1+x2)*x3*x4=out的关系。out是共知的，但x是秘密的。
 
-You can also play the code with Python notebook [here](https://github.com/Antalpha-Labs/plonk-intro-notebook).
+这样就顺手引出了ZKP协议之Plonk协议的目标之一：如何实现Prover不透露输入（这里术语用witness，即对应于x）的情况下，仍然可以给出可信的证明，使得Verifer相信Prover真的知道witness（或输入x），使得f(x)=out。
 
-## Key changes from PlonKathon
-### setup.py
-- Added `generate_srs` method so you can generate SRS(Structured Reference String) by specifying the nubmer powers as you need
-- Added support for `commit` to coefficient polynomial
+这里有几点需要备注一下：
+1. 这里可以看作输入与输出是一个函数关系，输入为x，输出为out=f(x)，一般将这个过程称为约束（可视作为函数f）。
+2. 约束关系f与输出out为双方共知的，输入x为Prover的秘密知识。
+3. 使用“电路”的形式，来表达这种约束关系。这个电路可以理解成，使用小的约束（即简单的加法乘法门），进行不断叠加，来表达整个的函数关系。例如（x1+x2)* x3*x4，可以表示为一个加法门约束与两个乘法门约束的叠加。如下图：
+![电路图1](https://hackmd.io/_uploads/HJirzJhdA.png=100*100)  
+
 
-### poly.py
-- Added support for coefficient polynomial
+## 二、相关背景知识
+在正式进入Plonk的内容之前，还需要先了解关于多项式编码的知识。  
+设有一个向量v=(1,2,5,6)，我们将其编码在H=（1,2,3,4），即为将其转化为一个d<4的多项式f(x)，取多项式的根为H=（1,2,3,4），即v(1)=1,v(2)=2,v(3)=5,v(4)=6，这里使用拉格朗日插值法，可以得到：
+v(x)= -$\frac{2}{3}$*x^3^+5*x^2^-$\frac{28}{3}$x+6
 
-### prover.py
-- Changed polynomial from lagrange form to coefficient form
-- Removed coset operation
-- Removed linearization commitment
+这个过程可以理解为将N个离散点映射为一个N-1阶的多项式，或将离散点编码到一个多项式上。那做这个映射（编码）有什么好处呢？  
 
-### transcipt.py
-- Changed Fiat-Shamir transcript according to prover.py
+例如，有两个向量，v=(1,2,5,6)，t=(1,2,5,7)，如果直接验证向量v是否等于t，相当于做四次计算，判断Vi?=Ti（i=1,2,3,4)。
 
-### verifier.py
-- Removed linearization, changed to verify each polynomial separately with pairing(KZG10)
-
-## Getting started
-
-### 1. Install poetry
-
-To get started, you'll need to have a Python version >= 3.8 and [`poetry`](https://python-poetry.org) installed:
-
-`curl -sSL https://install.python-poetry.org | python3 -`.
-
-### 2. Install dependencies
-
-Run command in the root of the repository:
-
-`poetry install`
-
-This will install all the dependencies in a virtualenv.
-
-### 3. Run
-
-#### 3.1 Run with test.py
-
-Then, to see the proof system in action, run command from the root of the repository:
-
-`poetry run python test.py`
-
-This will take you through the workflow of setup, proof generation, and verification for several example programs.
-
-#### 3.2 Run with Jupyter
-
-3.2.1 Install jupyter with poetry:
-
-`poetry add -D jupyter`
-
-3.2.2 Run command:
-
-`poetry run jupyter lab`
-
-The browser will popup and launch jupyter lab. You can start to explore!
-
-
-### Compiler
-#### Program
-We specify our program logic in a high-level language involving constraints and variable assignments. Here is a program that lets you prove that you know two small numbers that multiply to a given number (in our example we'll use 91) without revealing what those numbers are:
-
-```
-n public
-pb0 === pb0 * pb0
-pb1 === pb1 * pb1
-pb2 === pb2 * pb2
-pb3 === pb3 * pb3
-qb0 === qb0 * qb0
-qb1 === qb1 * qb1
-qb2 === qb2 * qb2
-qb3 === qb3 * qb3
-pb01 <== pb0 + 2 * pb1
-pb012 <== pb01 + 4 * pb2
-p <== pb012 + 8 * pb3
-qb01 <== qb0 + 2 * qb1
-qb012 <== qb01 + 4 * qb2
-q <== qb012 + 8 * qb3
-n <== p * q
-```
-
-Examples of valid program constraints:
-- `a === 9`
-- `b <== a * c`
-- `d <== a * c - 45 * a + 987`
-
-Examples of invalid program constraints:
-- `7 === 7` (can't assign to non-variable)
-- `a <== b * * c` (two multiplications in a row)
-- `e <== a + b * c * d` (multiplicative degree > 2)
-
-Given a `Program`, we can derive the `CommonPreprocessedInput`, which are the polynomials representing the fixed constraints of the program. The prover later uses these polynomials to construct the quotient polynomial, and to compute their evaluations at a given challenge point.
-
-```python
-@dataclass
-class CommonPreprocessedInput:
-    """Common preprocessed input"""
-
-    group_order: int
-    # q_M(X) multiplication selector polynomial
-    QM: list[Scalar]
-    # q_L(X) left selector polynomial
-    QL: list[Scalar]
-    # q_R(X) right selector polynomial
-    QR: list[Scalar]
-    # q_O(X) output selector polynomial
-    QO: list[Scalar]
-    # q_C(X) constants selector polynomial
-    QC: list[Scalar]
-    # S_σ1(X) first permutation polynomial S_σ1(X)
-    S1: list[Scalar]
-    # S_σ2(X) second permutation polynomial S_σ2(X)
-    S2: list[Scalar]
-    # S_σ3(X) third permutation polynomial S_σ3(X)
-    S3: list[Scalar]
-```
-
-#### Assembly
-Our "assembly" language consists of `AssemblyEqn`s:
-
-```python
-class AssemblyEqn:
-    """Assembly equation mapping wires to coefficients."""
-    wires: GateWires
-    coeffs: dict[Optional[str], int]
-```
-
-where:
-```python
-@dataclass
-class GateWires:
-    """Variable names for Left, Right, and Output wires."""
-    L: Optional[str]
-    R: Optional[str]
-    O: Optional[str]
-```
-
-Examples of valid program constraints, and corresponding assembly:
-| program constraint         | assembly                                         |
-| -------------------------- | ------------------------------------------------ |
-| a === 9                    | ([None, None, 'a'], {'': 9})                     |
-| b <== a * c                | (['a', 'c', 'b'], {'a*c': 1})                    |
-| d <== a * c - 45 * a + 987 | (['a', 'c', 'd'], {'a*c': 1, 'a': -45, '': 987}) |
-
-
-### Setup
-Let $\mathbb{G}_1$ and $\mathbb{G}_2$ be two elliptic curves with a pairing $e : \mathbb{G}_1 \times \mathbb{G}_2 \rightarrow \mathbb{G}_T$. Let $p$ be the order of $\mathbb{G}_1$ and $\mathbb{G}_2$, and $G$ and $H$ be generators of $\mathbb{G}_1$ and $\mathbb{G}_2$. We will use the shorthand notation
-
-$$[x]_1 = xG \in \mathbb{G}_1 \text{ and } [x]_2 = xH \in \mathbb{G}_2$$
-
-for any $x \in \mathbb{F}_p$.
-
-The trusted setup is a preprocessing step that produces a structured reference string:
-$$\mathsf{srs} = ([1]_1, [x]_1, \cdots, [x^{d-1}]_1, [x]_2),$$
-where:
-- $x \in \mathbb{F}$ is a randomly chosen, **secret** evaluation point; and
-- $d$ is the size of the trusted setup, corresponding to the maximum degree polynomial that it can support.
-
-```python
-@dataclass
-class Setup(object):
-    #   ([1]₁, [x]₁, ..., [x^{d-1}]₁)
-    # = ( G,    xG,  ...,  x^{d-1}G ), where G is a generator of G_1
-    powers_of_x: list[G1Point]
-    # [x]₂ = xH, where H is a generator of G_2
-    X2: G2Point
-```
-
-In this repository, we are using the pairing-friendly [BN254 curve](https://hackmd.io/@jpw/bn254), where:
-- `p = 21888242871839275222246405745257275088696311157297823662689037894645226208583`
-- $\mathbb{G}_1$ is the curve $y^2 = x^3 + 3$ over $\mathbb{F}_p$;
-- $\mathbb{G}_2$ is the twisted curve $y^2 = x^3 + 3/(9+u)$ over $\mathbb{F}_{p^2}$; and
-- $\mathbb{G}_T = {\mu}_r \subset \mathbb{F}_{p^{12}}^{\times}$.
-
-We are using an setup for $d = 2^{12}$ that is generated by our own code.
-
-Note: Original PlonKathon code is existing one from this [ceremony](https://github.com/iden3/snarkjs/blob/master/README.md). You can find out more about trusted setup ceremonies [here](https://github.com/weijiekoh/perpetualpowersoftau).
-
-### Prover
-The prover creates a proof of knowledge of some satisfying witness to a program.
-
-```python
-@dataclass
-class Prover:
-    group_order: int
-    setup: Setup
-    program: Program
-    pk: CommonPreprocessedInput
-```
-
-The prover progresses in five rounds, and produces a message at the end of each. After each round, the message is hashed into the `Transcript`.
-
-The `Proof` consists of all the round messages (`Message1`, `Message2`, `Message3`, `Message4`, `Message5`).
-
-#### Round 1
-```python
-def round_1(
-    self,
-    witness: dict[Optional[str], int],
-) -> Message1
-
-@dataclass
-class Message1:
-    # - [a(x)]₁ (commitment to left wire polynomial)
-    a_1: G1Point
-    # - [b(x)]₁ (commitment to right wire polynomial)
-    b_1: G1Point
-    # - [c(x)]₁ (commitment to output wire polynomial)
-    c_1: G1Point
-```
-
-#### Round 2
-```python
-def round_2(self) -> Message2
-
-@dataclass
-class Message2:
-    # [z(x)]₁ (commitment to permutation polynomial)
-    z_1: G1Point
-```
-
-#### Round 3
-```python
-def round_3(self) -> Message3
-
-@dataclass
-class Message3:
-    # [quot(x)]₁ (commitment to the quotient polynomial t(X))
-    W_t: G1Point
-```
-
-#### Round 4
-```python
-def round_4(self) -> Message4
-
-@dataclass
-class Message4:
-    # Evaluation of a(X) at evaluation challenge ζ
-    a_eval: Scalar
-    # Evaluation of b(X) at evaluation challenge ζ
-    b_eval: Scalar
-    # Evaluation of c(X) at evaluation challenge ζ
-    c_eval: Scalar
-    # Evaluation of QL(X) at evaluation challenge ζ
-    ql_eval: Scalar
-    # Evaluation of QR(X) at evaluation challenge ζ
-    qr_eval: Scalar
-    # Evaluation of QM(X) at evaluation challenge ζ
-    qm_eval: Scalar
-    # Evaluation of QO(X) at evaluation challenge ζ
-    qo_eval: Scalar
-    # Evaluation of QC(X) at evaluation challenge ζ
-    qc_eval: Scalar
-    # Evaluation of the first permutation polynomial S_σ1(X) at evaluation challenge ζ
-    s1_eval: Scalar
-    # Evaluation of the second permutation polynomial S_σ2(X) at evaluation challenge ζ
-    s2_eval: Scalar
-    # Evaluation of the second permutation polynomial S_σ3(X) at evaluation challenge ζ
-    s3_eval: Scalar
-    # Evaluation of the permutation polynomial z(X) at the evaluation challenge ζ
-    z_eval: Scalar
-    # Evaluation of the shifted permutation polynomial z(X) at the shifted evaluation challenge ζω
-    zw_eval: Scalar
-    # Evaluation of Quotient Polynomial Quot(X) at evaluation challenge ζ
-    t_eval: Scalar
-```
-
-#### Round 5
-```python
-def round_5(self) -> Message5
-
-@dataclass
-class Message5:
-    # (commitment to the opening proof polynomial)
-    W_a: G1Point
-    W_a_quot: G1Point
-    W_b: G1Point
-    W_b_quot: G1Point
-    W_c: G1Point
-    W_c_quot: G1Point
-    W_ql: G1Point
-    W_ql_quot: G1Point
-    W_qr: G1Point
-    W_qr_quot: G1Point
-    W_qm: G1Point
-    W_qm_quot: G1Point
-    W_qo: G1Point
-    W_qo_quot: G1Point
-    W_qc: G1Point
-    W_qc_quot: G1Point
-    W_s1: G1Point
-    W_s1_quot: G1Point
-    W_s2: G1Point
-    W_s2_quot: G1Point
-    W_s3: G1Point
-    W_s3_quot: G1Point
-    W_z: G1Point
-    W_z_quot: G1Point
-    W_zw: G1Point
-    W_zw_quot: G1Point
-    W_t: G1Point
-    W_t_quot: G1Point
-```
-
-### Verifier
-Given a `Setup` and a `Program`, we can generate a verification key for the program:
-
-```python
-def verification_key(self, pk: CommonPreprocessedInput) -> VerificationKey
-```
-
-The `VerificationKey` contains:
-
-| verification key element | remark                                                           |
-| ------------------------ | ---------------------------------------------------------------- |
-| $[q_M(x)]_1$             | commitment to multiplication selector polynomial                 |
-| $[q_L(x)]_1$             | commitment to left selector polynomial                           |
-| $[q_R(x)]_1$             | commitment to right selector polynomial                          |
-| $[q_O(x)]_1$             | commitment to output selector polynomial                         |
-| $[q_C(x)]_1$             | commitment to constants selector polynomial                      |
-| $[S_{\sigma1}(x)]_1$     | commitment to the first permutation polynomial $S_{\sigma1}(X)$  |
-| $[S_{\sigma2}(x)]_1$     | commitment to the second permutation polynomial $S_{\sigma2}(X)$ |
-| $[S_{\sigma3}(x)]_1$     | commitment to the third permutation polynomial $S_{\sigma3}(X)$  |
-| $[x]_2 = xH$             | (from the $\mathsf{srs}$)                                        |
-| $\omega$                 | an $n$-th root of unity, where $n$ is the program's group order.  |
-
-## Community
-https://t.me/AntalphaLabs
-
-Baby Plonk is a start to a series of educational Baby ZKP protocols we wish to promote. We call for more devs in the ZKP community to continue the journey and enrich the educational toolkits.
-
-We’d love to share any updates with the community moving forward and call for more devs to join us in this journey. Antalpha Labs is committed to supporting the building of educational materials.
+而如果先将两个向量编码成多项式v(x)与t(x)。我们知道，仅当向量v等于向量t时，则两个多项式完全相等，即v(x)=t(x)时。
+
+**关键点来了**：针对这两个多项式是否相等，只需要选取一个随机点，即可以大概率地进行验证了（两个d阶的多项式，至多只有d个点会相交），而不必针对向量的每个原始点进行逐一验证！
+例如，上面所举的例子中，拉格朗日插值法得到两个项式：
+v(x)= -$\frac{2}{3}$*x^3^+5*x^2^-$\frac{28}{3}$x+6
+t(x)= -$\frac{1}{2}$*x^3^+4*x^2^-$\frac{15}{2}$x+5
+
+我们用肉眼当然可以判断二者的系数不等，但协议中并不是通过比较逐项的系数，而是使用 Schwartz-Zippel 定理的结论进行随机挑战来判断
+
+>Schwartz-Zippel 定理
+>如果有两个多项式 f(X) 和 g(X) 同为两个次数不超过 d 的多项式。那么 Verifier 只需要给出一个随机挑战值 ζ∈F，计算 f(ζ) 是否等于 g(ζ) 即可大概率得知 f(X)=g(X)，其中出错的概率 ≤d/|F|。只要保证 F 足够大，那么检查出错的概率就可以忽略不计。
+
+那么在上述例子中，最多只可能有3个交点，假设取值的范围|F|=2^254 ,则单次挑战出错的概率≤3/2^254^，可忽略不计。
+
+在后续的整个体系，都建立在定理及其多项式编码的应用的基础上。
+
+我的理解是，所有与验证离散点的关系的问题，（比如后面我们要证明的置换关系，或是Lookup中的查询关系）都可以用类似的思路转化为多项式关系，通过随机数挑战来验证。可以近似看为，将原本需要N次的验证计算，压缩到一次（极大概率正确）的验证。
+
+## 三、Plonk原理及流程
+### 1、概述 
+有了以上基础后，就可以进入Plonk原理了！
+在理解了郭老师的对Plonk讲解文章后，我对于阐述Plonk协议中流程的次序做了小小的调整，概括如下。
+（1）算术化：先通过Plonkish，将这个原始数学式（或函数）对应的约束表达清楚，转化为Plonk能接受的约束表达式。不论这个约束是门电路的算术约束、还是暗含的拷贝约束。这个过程一并归入到算术化之中。这个部分可对应于Plonkathon（Plonkathon的python版代码中的Program这个部分。）
+（2）将约束关系，通过向量化的等式表达出来。这里尤其是如何将置换约束表达出来，Plonk协议可谓颇有些技巧。向量可近似理解为离散化的原始信息点。
+（3）有了向量化的等式表达，就可以通过多项式编码，将各约束式表达并压缩为单个多项式等式的约束关系，进而可以随机数挑战验证了！当然，整个过程中，需要用到好些方法技巧，使约束关系式的计算量缩减。
+（4）最后，使用多项式承诺，来验证约束式。由于本文篇幅有限，这部分暂且不做阐述，将于另外笔记中做总结整理。
+### 2、算术化
+在Plonk中的算术化称为Plonkish，即把一系列约束（或者说，一个函数关系），转化为一个Plonk协议能处理的数学形式。而任意一个复杂的计算过程（函数）、都可以最小化地拆解成多个加法门与乘法门关系的叠加（类似于计算机内部最底层操作都是加法计算），每一个加法或乘法门称为一个门约束的组合。
+这部分的详细阐述过程可以看[郭老师的原文](https://learn.z2o-k7e.world/plonk-intro-cn/plonk-arithmetization.html)，这里仅做简单阐述。  
+
+- 算术约束
+对于（x1+x2)* x3*x4=out的示例，可拆解为三个算术约束：
+$$x1+x2=x6$$ $$x3+x4=x5$$ $$x6+x5=out$$
+我们的目标是，针对任意一个约束门，都能使用一个统一化的数学式进行表达。那么，我们就可以使用W矩阵来表达约束：wa表示左输入，wb表示右输入，wc表示输出。同时，我们用Q矩阵来表示单个约束的运算。
+最终，所有的算术约束可以统一一化地转化为：
+$$q_{L}*w_{a}+q_{R}*w_{b}+q_{M}*(w_{a}*w_{b})+q_{c}-q_{o}*w_{c}=0。$$这里形成的Q矩阵，是对于算术约束关系的描述，属于公开的公共知识。而作为输入的W矩阵（W=[$w_{a},w_{b},w_{c}$]），则是仅Prover知道的秘密知识。这个式子已经是向量化的表达，具备多项式编码的条件了。
+
+
+- 置换约束
+如下图所示的两个电路，其Q矩阵虽然完全相同，但这两个电路却完全不同。
+![电路图2](https://hackmd.io/_uploads/rkgoZxnd0.png)
+这是由于我们将计算过程拆解成了一步一步的加法或乘法计算，那么在每步计算之间都有关联关系。例如：
+第一个加法门：x1+x2=out1
+第二个乘法门：x6*x5=out2
+这里第一个加法门的输出out1，作为了第二个乘法门的左输入x6，其实暗含了out1=x6。
+因此，这里两个有关联的约束门之间，二者还必须需要有关联约束。在Plonk中使用一种置换关系矩阵σ，来表达这种关联约束，如下表
+![置换矩阵](https://hackmd.io/_uploads/SJUEQx3_C.png)
+
+表中，相同颜色字母的变量为置换约束关系。例如，在第一个约束中的左输入wa1=x6，须要求wa1=wc2（x6与x6置换），因此第二个约束中的输出wc2必须等于x6。
+
+但是这种形式的表达仅能让我们知道，谁和谁置换（相等），却没有转化为类似算术约束的等式表达，无法进行多项式编码！因此，我们需要对约束关系进行深度挖掘，以便将其转化为向量式的数学等式表达。
+### 3、置换关系向量化表达
+整个过程需要用到一系列的方法：Grand Product—Multiset—Permuta—Copy Constraints，都是为了通过数学上的变换，将这种置换约束表达出来。（在后续的lookup之亦是类似的过程）
+
+这里仅对这个过程作一个简述，详细过程参[郭老师原文章](https://learn.z2o-k7e.world/plonk-intro-cn/plonk-permutation.html)。
+
+#### (1)Grand Product
+证明一个连乘关系：
+P=q0* q1*q2.....qn-2
+我们将变量{qi}视作一个向量，通过引入一个中间的辅助向量{ri}，使得：
+$$r_{0}=1$$ $$r_{k+1}=q_{k}*r_{k}$$ 那么，，整个连乘过程，可以由以下步骤形成：
+![qiri](https://hackmd.io/_uploads/HkfU4xhdA.png)
+这里只要我们可以转换为向量{qi}与{ri}的形式，我们就可以进行多项式编码了
+比如：由$$r_{0}=1$$可得到:$$L_{0}(x)*(r(x)-1)=0$$由$$r_{k+1}=q_{k}*r_{k}$$可得到：$$q(x)*r(x)=r(w*x)$$
+
+#### (2)Multiset
+怎么证明，两个集合（或称为向量）{$p_{i}$}与{$q_{i}$}}，其中一个向量是另一个向量的乱序重排？
+如果直接将两个向量中的元素连乘然后判断相等，这种方法是无法证明的（反倒，{3,6}不等于{9,2}）。
+这里只需要略作调整。针对将{qi}向量的元素，看作一个多项式q(x)的根。
+对于向量{qi}，每个元素作为多项式的根可确定一个多项式，因此有惟一的多项式q(x)与之对应
+$$q(x)=(X-q_{0})(X-q_{1})(X-q_{2})...（X-q_{n-1})$$ 因此，{$p_{i}$}与{$q_{i}$}是置换关系，可等价于
+
+$$\prod(X-q_{i})=q(X)=p(X)=\prod(X-p_{i})$$ 进一步可等价于：$$\prod\frac{X-q_{i}}{X-p_{i}}=1$$
+到了这一步，我们已经将它变换为连乘的形式，于是可以使用上一节中的Grand Product
+了！
+**这里仍应用了多项式编码的思想，可见多项式编码的思想贯穿始终！**
+
+#### (3)置换证明
+有了以上两步的基础，现在可以继续往更深的步骤进行推进了！
+Multiset 等价可以被看作是一类特殊的置换证明、或者更准确的说，应是未知位置的置换。若要证明“公开而特定的位置置换”，我们还需要再对位置进行编码，然后再使用上面步骤中的。
+
+先使用两个向量举例，假设对其进行奇偶换位（这里简化举例，设n为偶数）
+原始向量：$$a=(a0,a1,a2.....an-1,an)$$换位后的向量：$$b=(a1,a0,a3,a2....an,an-1)$$我们需要对向量中的元素的位置进行编码，来标识其换位的情况。
+换位前的位置:$$i=(0,1,2.....n-1,n)$$换位后的位置：$$σ=(2,1,4,3.....n,n-1)$$再将表达信息的向量与其位置的向量，合并在一起，进而可以得到换位前与换位后的合并向量a’与b’，如下：
+![ai'](https://hackmd.io/_uploads/H1Uktgh_A.png)
+
+这里需要再使用一个随机数$\beta$（在协议中应在Verifer给出），从而可以将向量的二元素的元组折叠成一个元素。
+**这里再次看到使用随机数的神奇功效！使用随机数，将两个信息，可以压缩成一个！**
+折叠后的两个向量组如下：
+
+![ai'合并](https://hackmd.io/_uploads/HJIDFg3dA.png)
+
+这里的核心insight是：表达信息的元素的变换，是跟随着其位置变换而变换的，因此可以将对应的信息与其位置编码压缩成一个向量。例如：将$a_{1}$从1号位置变换到$σ(0)$号位置，成了$b_{0}$。那么显然有:$$a1+1*β=b0+σ(0)*β=b0+1*β$$那么这样，我们就把位置信息也整合进了向量之中。这样就可以使用上一步中的Multiset的方法、最终转化为一个连乘证明了！
+
+#### (4)置换矩阵的位置编码及向量化
+有了以上步骤的基础，现在我们可以回到表达置换关系的$σ$矩阵中进行观察。
+![原始约束](https://hackmd.io/_uploads/H1qPBw3O0.png)
+针对这个置换关系，我们对其进行位置编码。（郭老师原文里，置换关系矩阵σ中，对位置的编号为1、2、3、4，而后位置矩阵编号为0、1、2、3。我们这里暂改为采用0、1、2、3）
+置换前的位置编码{$i_{d}$}：
+![id置换位置](https://hackmd.io/_uploads/HkZbUP3_C.png)
+置换后的位置编码{$σ$}：
+![置换后位置](https://hackmd.io/_uploads/S1kNUwnuA.png)
+根据我们在前面获得的**insight**，即**原始信息（W矩阵）与对应的位置信息，不论怎么变换，二者都是相对应的**。那么，我们就可以直接使用两个随机数，将位置与信息两个元素组合起来，然后再将三个向量相乘、从而压缩成一个向量。压缩后向量的连乘，必然满足置换关系。
+
+置换向量{$f_{i}$}与置换后向量{$g_{i}$}表达如下：
+$$f_{i}=(w_{a,i}+\beta\cdot id_{a,i}+\gamma)(w_{b,i}+\beta\cdot id_{b,i}+\gamma)(w_{c,i}+\beta\cdot id_{c,i}+\gamma)$$ $$g_{i}=(w'_{a,i}+\beta\cdot \sigma_{a,i}+\gamma)(w'_{b,i}+\beta\cdot \sigma_{b,i}+\gamma)(w'_{c,i}+\beta\cdot \sigma_{c,i}+\gamma)$$ 不妨对于上述示例做个验证。置换前为：
+$$
+f_{0}=(w_{a,0}+0\beta+\gamma)(w_{b,0}+4\beta+\gamma）(\color{green}w_{\color{green}c,\color{green}0}+\color{green}8\beta+\gamma)
+$$$$
+f_{1}=(\color{red}w_{\color{red}a,\color{red}1}+\color{red}1\beta+\gamma)(\color{blue}w_{\color{blue}b,\color{blue}1}+\color{blue}5\beta+\gamma）(\color{green}w_{\color{green}c,\color{green}1}+\color{green}9\beta+\gamma)
+$$$$
+f_{2}=(w_{a,2}+2\beta+\gamma)(w_{b,2}+6\beta+\gamma）(\color{red}w_{\color{red}c,\color{red}2}+\color{red}1\color{red}0\beta+\gamma)
+$$$$
+f_{3}=(w_{a,3}+3\beta+\gamma)(w_{b,3}+7\beta+\gamma）(\color{blue}w_{\color{blue}c,\color{blue}3}+\color{blue}1\color{blue}1\beta+\gamma)
+$$置换后为：
+$$
+g_{0}=(w'_{a,0}+0\beta+\gamma)(w'_{b,0}+4\beta+\gamma）(\color{green}w\color{green}'_{\color{green}c,\color{green}0}+\color{green}9\beta+\gamma)
+$$$$
+g_{1}=(\color{red}w\color{red}'_{\color{red}a,\color{red}1}+\color{red}1\color{red}0\beta+\gamma)(\color{blue}w\color{blue}'_{\color{blue}b,\color{blue}1}+\color{blue}1\color{blue}1\beta+\gamma）(\color{green}w\color{green}'_{\color{green}c,\color{green}1}+\color{green}8\beta+\gamma)
+$$$$
+g_{2}=(w_{a,2}+2\beta+\gamma)(w_{b,2}+6\beta+\gamma）(\color{red}w\color{red}'_{\color{red}c,\color{red}2}+\color{red}1\beta+\gamma)
+$$$$
+g_{3}=(w_{a,3}+3\beta+\gamma)(w_{b,3}+7\beta+\gamma）(\color{blue}w\color{blue}'_{\color{blue}c,\color{blue}3}+\color{blue}5\beta+\gamma)
+$$我们可以简单验算一下：
+{$f_{i}$}包含($w_{c,0}+8β+γ$)、($w_{c,1}+9β+γ$)，而{$g_{i}$}包含($w'_{c,0}+9β+γ$)、($w'_{c,1}+8β+γ$)
+而由于置换关系，$\color{green}w_{\color{green}c,\color{green}0}=\color{green}w\color{green}’_{\color{green}c,\color{green}1},且\color{green}w_{\color{green}c,\color{green}1}=\color{green}w\color{green}'_{\color{green}c,\color{green}0}$，因此：
+$$\color{green}w_{\color{green}c,\color{green}0}+\color{green}8β+γ=\color{green}w\color{green}'_{\color{green}c,\color{green}1}+\color{green}8β+γ$$ $$\color{green}w\color{green}'_{\color{green}c,\color{green}1}+\color{green}9β+γ=\color{green}w_{\color{green}c,\color{green}1}+\color{green}9β+γ$$ 由此可知在连乘中，对应的项均可以消去。因此，构造的向量{$f_{i}$}与置换后的向量{$g_{i}$}，必然须满足：
+$$\prod f_{i}=\prod g_{i}$$ 等价于：$$\prod \frac{f_{i}}{g_{i}}=1$$ 由此，完全满足进行多项式编码的条件了。
+
+
+## 四、多项式编码及约束式计算
+### 约束式表达
+现在，我们终于把电路的约束关系，都用向量的形式，进行了表达！再总结一下：Plonk中电路的约束包含算术约束与置换约束。
+#### 算术约束
+表达为：
+$$q_{L}\cdot w_{a}+q_{R}\cdot w_{b}+q_{M}\cdot w_{a}\cdot w_{b}+w_{c}+q_{o}\cdot w_{c}=0$$同时对各个向量在定义域H上进行多项式编码、转化为多项式，约束可表达为：
+$$q_{L}(X)\cdot w_{a}(X)+q_{R}(X)\cdot w_{b}(X)+q_{M}(X)\cdot w_{a}(X)\cdot w_{b}(X)+q_{c}(X)+q_{o}(X)\cdot w_{c}(X)=0$$
+#### 置换约束
+表达为：
+$$z_{0}=1$$ $$z_{i+1}=z_{i}\cdot\frac{f_{i}}{g_{i}}$$ 可编码为：$$z(w^0)=1$$ $$z(wX)\cdot g(X)=z(X)\cdot f(X)$$ 其中：
+$$f(X)=(w_{a}(X)+\beta\cdot id_{a}(X)+\gamma)(w_{b}(X)+\beta\cdot id_{b}(X)+\gamma)(w_{c}(X)+\beta\cdot id_{c}(X)+\gamma)$$ $$g(X)=(w_{a}(X)+\beta\cdot \sigma_{a}(X)+\gamma)(w{b}(X)+\beta\cdot \sigma_{b}(X)+\gamma)(w_{c}(X)+\beta\cdot \sigma_{c}(X)+\gamma)$$
+### 简化计算的技巧方法
+这里为了使运算更简化，整个过程中还用到了几个常用的技巧或方法。
+1. 存放公开参数
+这就需要再引入一个新的列，专门存放公开参数，记为 φ。这样，必不必将公开值（out)固定为常数，从而导致改变一个输出值就会使得多项式$q_{c}(X)$重新计算的不变。这样，将算术约束式表示为：$$q_{L}(X)\cdot w_{a}(X)+q_{R}(X)\cdot w_{b}(X)+q_{M}(X)\cdot w_{a}(X)\cdot w_{b}(X)+q_{c}(X)-q_{o}(X)\cdot w_{c}(X)+φ(X)=0$$
+2. 编码时，多项式根的选取
+最开始多项式编码的示例，随意取多项式根H={1,2,3,4}。在协议中，实际上为针对有限域Fp，选取其乘法子群H={1，w,w^2^,w^3^......w^n-1^}，且n=2^k^
+如此可以满足在多项式编码的计算过程中，可简化计算，如下式所示:
+$$\prod_{i=0}^{n-1}(X-w^i)=X^n-1$$ 
+3. 置换关系中，位置编码的选取
+我们在前面示例中，置换关系的位置编码是随意选择自然数（0,1,2...）作为位置编码。而实际上，巧妙地选择位置编码，可以进一步减少工作量。按如下方法选择：
+$${id_{a}}=(1,w,w^2,w^3)$$ $${id_{b}}=(k_1,k_1w,k_1w^2,k_1w^3)$$ $${id_{c}}=(k_2,k_2w,k_2w^2,k_2w^3)$$ 由此，对这些向量进行多项式编码时，就可以轻松的得到：
+$$id_{a}(X)=X$$ $$id_{b}(X)=k_1X$$ $$id_{c}(X)=k_2X$$ 其中：k1、k2为互相不等的二次非剩余。
+
+### 约束多项式的聚合
+终于！有了上述内容，我们可以将上述约束的多项式，做一个聚合了！（本文于第五部分中附上Demo级的代码示例，以下的公式与代码示例中一致）
+
+针对以下三个式子作聚合：
+$$q_{L}(X)\cdot w_{a}(X)+q_{R}(X)\cdot w_{b}(X)+q_{M}(X)\cdot w_{a}(X)\cdot w_{b}(X)+q_{c}(X)-q_{o}(X)\cdot w_{c}(X)+φ(X)=0$$ $$z(w^0)=1$$ $$z(wX)\cdot g(X)=z(X)\cdot f(X)$$ 我们用C1(X)、C2(X)、C3(X)来表达以下三个式子：
+$$C_{1}(X)=q_{L}(X)\cdot w_{a}(X)+q_{R}(X)\cdot w_{b}(X)+q_{M}(X)\cdot w_{a}(X)\cdot w_{b}(X)+q_{c}(X)-q_{o}(X)\cdot w_{c}(X)+φ(X)$$ $$C_{2}(X)=z(wX)\cdot g(X)-z(X)\cdot f(X)$$ $$C_{3}(X)=L_{0}(X)\cdot (z(X)-1)$$ 然后计算：
+$$z_{H}(X)=X^n-1$$ 最后，使用随机数α聚合，即可得到：$$C_{Combine}(X)=C_{1}(X)+\alpha \cdot C_{2}(X)+\alpha^2 \cdot C_{3}(X)$$ 而商多项式：$$t(X)=\frac{C_{Combine}(X)}{z_{H}(X)}$$
+
+### 随机挑战验证
+Verifier通过发送随机挑战数 ζ，来检查的各个多项式的打开值，对结果进行验证。这个部分可详[郭老师的文章](https://learn.z2o-k7e.world/plonk-intro-cn/plonk-constraints.html)，本文仅侧重于整个流程的演进，此处不再叙述这部分。
+
+## 五、简化代码示例
+最后，对上述内容附上对应的零基础入门级Demo代码示例，针对以上流程所述及的部分作个示例解释。示例说明如下：
+1. 示例中不包括Plonkish部分，而是直接将已经算术化的电路W矩阵与σ矩阵直接作为输入。可参考Plonkathon代码中的Program模块，作为实际项目中的一种算术化过程。
+2. 示例中不包含多项式承诺及最后的随机数挑战验证环节。本示例仅对多项式计算进行验证。
+3. 示例中，选取一个较小的域F101来进行演示，整个过程可以跟踪得更直观。
+
+### 导入库、初始定义
+~~~
+import numpy as np
+import galois
+field_order = 101 #取一个较小的域，来进行计算
+prim_g = 2 # primitive generator for F(101),取生成元为2
+GF101 = galois.GF(field_order)
+
+# Given two 1-D arrays x and y
+# Returns the Lagrange interpolating polynomial through the points (x, y).
+def lagrange_poly_in_finite_field(x, y):
+    return galois.lagrange_poly(GF101(x), GF101(y))
+def get_div_num(a, b):
+    return GF101(a) / GF101(b)
+# roots of unity for subgroup H
+roots_of_unity = GF101([1, 10, 100, 91]) #使用生成元w=10
+
+k1 = prim_g  #取k1=生成元g=2
+k2 = prim_g * prim_g #取k2=生成元g^2=4,以使k1 k2二次非剩余
+~~~
+
+### 直接输入电路矩阵
+~~~
+#Q 矩阵：以下再把q矩阵直接放进去。因为只有三个约束，最后一位补0
+ql=GF101([0,0,0,0]) 
+qr=GF101([0,0,0,0]) 
+qm=GF101([1,1,0,0]) 
+qc=GF101([0,0,60,0]) 
+qo=GF101([1,1,0,0])  #注意：如果是加上-ϕx这一项的话，那么对于out的约束项，qo这里就取0。
+ϕx=GF101([0,0,60,0]) 
+
+#构造idx矩阵
+id_vec_1 = GF101([1, 10, 100, 91]) # same as subgroup H,即id1=[w^0,w^1,w^2,w^3]，即为ida
+id_vec_2 = []
+id_vec_3 = []
+for i in range(len(roots_of_unity)):
+    id_vec_2.append(GF101(k1) * id_vec_1[i])  #即为idb
+    id_vec_3.append(GF101(k2) * id_vec_1[i])  #即为idc
+print("id_vec_1: ", id_vec_1)
+print("id_vec_2: ", id_vec_2)
+print("id_vec_3: ", id_vec_3)
+
+#构造σ矩阵。
+sigma_vec_1 = [id_vec_1[0], id_vec_3[0], id_vec_1[2], id_vec_1[3]] #即为σa
+sigma_vec_2 = [id_vec_2[0], id_vec_2[1], id_vec_2[2], id_vec_2[3]] #即为σb
+sigma_vec_3 = [id_vec_1[1], id_vec_3[2], id_vec_3[1], id_vec_3[3]] #即为σc
+print("sigma_vec_1: ", sigma_vec_1)
+print("sigma_vec_2: ", sigma_vec_2)
+print("sigma_vec_3: ", sigma_vec_3)
+
+# Witness Prover的秘密输入
+w_a = GF101([3, 12, 0, 0]) 
+w_b = GF101([4, 5, 0, 0])
+w_c = GF101([12, 60, 60, 0])
+# 先行验证一下，约束式是否成立
+for i in range(len(roots_of_unity)):
+    assert ql[i]*w_a[i]+qr[i]*w_b[i]+qm[i]*w_a[i]*w_b[i]-qo[i]*w_c[i]+qc[i]-ϕx[i]==0  #-ϕx[i] 
+~~~
+
+### 计算算术约束式C1(x)
+~~~
+w_a_poly = lagrange_poly_in_finite_field(roots_of_unity, w_a)
+w_b_poly = lagrange_poly_in_finite_field(roots_of_unity, w_b)
+w_c_poly = lagrange_poly_in_finite_field(roots_of_unity, w_c)
+ql_poly = lagrange_poly_in_finite_field(roots_of_unity, ql)
+qr_poly = lagrange_poly_in_finite_field(roots_of_unity, qr)
+qm_poly = lagrange_poly_in_finite_field(roots_of_unity, qm)
+qo_poly = lagrange_poly_in_finite_field(roots_of_unity, qo)
+qc_poly = lagrange_poly_in_finite_field(roots_of_unity, qc)
+ϕx_poly = lagrange_poly_in_finite_field(roots_of_unity, ϕx)
+C1_poly=ql_poly*w_a_poly+qr_poly*w_b_poly+qm_poly*w_a_poly*w_b_poly-qo_poly*w_c_poly+qc_poly-ϕx_poly
+
+print("Output:")
+print("w_a(X): ", w_a_poly)
+print("w_b(X): ", w_b_poly)
+print("w_c(X): ", w_c_poly)
+print("ql(X): ", ql_poly)
+print("qr(X): ", qr_poly)
+print("qm(X): ", qm_poly)
+print("qo(X): ", qo_poly)
+print("qc(X): ", qc_poly)
+print("ϕ(X): ", ϕx_poly)
+print("计算约束式C1(X): ", C1_poly)
+~~~
+
+
+### 计算置换约束式C2(x)与C3(x)
+~~~
+beta = GF101(2) #随机数β、γ，用于聚合出f(x)与g(x)
+gamma = GF101(3)
+f_values = []
+g_values = []
+q_values = []
+for i in range(len(roots_of_unity)):
+  f_acc_num_1 = w_a[i] + beta * id_vec_1[i] + gamma
+  f_acc_num_2 = w_b[i] + beta * id_vec_2[i] + gamma
+  f_acc_num_3 = w_c[i] + beta * id_vec_3[i] + gamma
+  g_acc_num_1 = w_a[i] + beta * sigma_vec_1[i] + gamma
+  g_acc_num_2 = w_b[i] + beta * sigma_vec_2[i] + gamma
+  g_acc_num_3 = w_c[i] + beta * sigma_vec_3[i] + gamma
+  f_acc_num = f_acc_num_1 * f_acc_num_2 * f_acc_num_3
+  g_acc_num = g_acc_num_1 * g_acc_num_2 * g_acc_num_3
+  f_values.append(f_acc_num) #对应于fx
+  g_values.append(g_acc_num) #对应于gx
+  q_values.append(get_div_num(f_acc_num, g_acc_num))
+
+# Calculate accumulator values z_values
+z_values = [1]
+for i in range(len(roots_of_unity) - 1):
+    z_values.append(z_values[-1] * get_div_num(f_values[i], g_values[i]))
+# Calculate z_w_values by shift z_values, the last value is 1
+z_w_values = z_values[1:] + z_values[:1]
+print("f_values: ", f_values)
+print("g_values: ", g_values)
+print("q_values: ", q_values)
+print("z_values: ", z_values)
+print("z_w_values: ", z_w_values)
+L_0_values = GF101([1, 0, 0, 0])
+
+# Do the interpolation, return polynomial
+L_0_poly = lagrange_poly_in_finite_field(roots_of_unity, L_0_values)
+f_poly = lagrange_poly_in_finite_field(roots_of_unity, f_values)
+g_poly = lagrange_poly_in_finite_field(roots_of_unity, g_values)
+z_poly = lagrange_poly_in_finite_field(roots_of_unity, z_values)
+z_w_poly = lagrange_poly_in_finite_field(roots_of_unity, z_w_values)
+print("Output:")
+print("L_0(X): ", L_0_poly)
+print("f(X) = ", f_poly)
+print("g(X) = ", g_poly)
+print("z(X) = ", z_poly)
+print("z_w(X) = ", z_w_poly)
+C2_poly=g_poly * z_w_poly - f_poly * z_poly  # z(wx)*g(x)-z(x)*f(x)
+print("C2(X) = ", C2_poly)
+
+#针对z1=1的约束，按下式，构造C3
+C3_poly=L_0_poly * (z_poly - GF101(1)) # L0(x)*(Z(x)-1)
+~~~
+
+### 随机数聚合
+~~~
+#用随机数α将C1、C2、C3进行聚合，计算商多项式q(x)
+# Vanishing polynomial: (X - 1)(X - 10)(X - 100)(X - 91)
+z_H_poly = galois.Poly([1, 1], field = GF101) * galois.Poly([1, 10], field = GF101) * galois.Poly([1, 100], field = GF101) * galois.Poly([1, 91], field = GF101)
+print("Vanishing polynomial z_H_poly: ", z_H_poly)
+
+#这里对C1 C2 C3都检查一下
+quot_poly2=C2_poly//z_H_poly
+assert C2_poly == quot_poly2 * z_H_poly, "C2_poly wrong"
+quot_poly3=C3_poly//z_H_poly
+assert C3_poly == quot_poly3 * z_H_poly, "C3_poly wrong"
+quot_poly1 = C1_poly//z_H_poly
+assert C1_poly == quot_poly1 * z_H_poly, "C1_poly wrong"
+alpha = GF101(23) #用α来聚合多个式子。
+combined_poly=C1_poly + alpha*C2_poly + alpha*alpha*C3_poly
+print("Combined polynomial combined_poly: ", combined_poly)
+quot_poly = combined_poly // z_H_poly #计算商多项式
+print("Quotient polynomial quot_poly: ", quot_poly)
+assert combined_poly == quot_poly * z_H_poly, "Division has a remainder(should not have)"
+~~~
+
+### 作最后的验证
+~~~
+# This number should be be a random number
+zeta = GF101(4) # zeta应是随机取
+y_1 = combined_poly(zeta)
+print("y_1: ", y_1)
+y_2_poly = quot_poly * z_H_poly
+y_2 = y_2_poly(zeta)
+print("y_2: ", y_2)
+# Final step: Verify by verifier
+assert y_1 == y_2, "Check failed"
+~~~
