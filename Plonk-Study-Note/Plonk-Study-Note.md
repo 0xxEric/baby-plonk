@@ -27,6 +27,7 @@ Prover要向Verify证明，自己知道一个输入（此处采用向量表达�
 1. 这里可以看作输入与输出是一个函数关系，输入为 $\vec x$ ，输出为 $out=f(\vec x)$ ，可将这个输入与输出的关系称为约束（可视作为函数 $f$ ）。
 2. 约束关系 $f$ 与输出 $out$ 为双方共知的，输入 $\vec x$ 为Prover的秘密知识。
 3. 使用“电路”的形式，来表达这种约束关系。这个电路可以理解成，使用最基础的约束（即简单的加法乘法门），进行不断叠加，来表达整个的函数关系。或者反过来说，我们把复合函数不断拆解，形成一组离散的门，这些离散的门约束即为算术约束，同时各个离散门之间具有的约束关系为复制约束。<br> 例如 $f=(x1+x2)\cdot x3\cdot x4$ ，可以表示为一个加法门约束与两个乘法门约束的叠加，同时加法门与两个乘法门之间存在一种约束关系。如下图：
+
 <div style="text-align: center;">
  <img src="https://hackmd.io/_uploads/HJirzJhdA.png=100*100" width="300"/>
 </div>
@@ -34,22 +35,30 @@ Prover要向Verify证明，自己知道一个输入（此处采用向量表达�
 ## 二、相关背景知识
 在正式进入Plonk的内容之前，还需要先了解关于多项式编码的知识。  
 设有一个向量 $\vec v=(1,2,5,6)$ ，我们将其编码在 $H=(1,2,3,4)$ ，即为将其转化为一个 $d<4$ 的多项式 $f(x)$ ，取多项式的根为 $H=(1,2,3,4)$ ，即 $v(1)=1,v(2)=2,v(3)=5,v(4)=6$ ，这里使用拉格朗日插值法，可以得到：
- $f_v(x)= -\frac{2}{3}x^3+5x^2-\frac{28}{3}x+6$ <br>
+
+$$f_v(x)= -\frac{2}{3}x^3+5x^2-\frac{28}{3}x+6$$
+
 这个过程可以理解为将 $N$ 个离散点编码为一个 $N-1$ 阶的多项式。那做多项编码有什么好处呢？  
 
 例如，有两个向量， $\vec v=(1,2,5,6)$ ,  $\vec t=(1,2,5,7)$ ，如果直接验证向量 $v$ 是否等于 $t$ ，如果直接判断相当于做四次计算，判断 $v[i] \stackrel{?}{=}t[i],\  \forall i \in[0,|v|]$ 。
 
 如果先将两个向量对应编码成多项式 $f_v(x)\ 与\ f_t(x)$ 。我们显然知道，当且仅当向量 $\vec v$ 等于向量 $\vec t$ 时，则两个多项式才完全相等，即 $f_v(x)=f_t(x)$ 。除了验算 $v[i] \stackrel{?}{=}t[i]$ ,有没有更简洁的方法？
 
-**关键点来了**：针对这两个多项式是否相等，只需要选取一个随机点，即可以大概率地进行验证了。过程是这样的。例如，上面所举的例子中，拉格朗日插值法得到两个项式：<br>
- $f_v(x)= -\frac{2}{3}x^3+5x^2-\frac{28}{3}x+6$ <br>
- $f_t(x)= -\frac{1}{2}x^3+4x^2-\frac{15}{2}x+5$ <br>
-令 $f_s(x)=f_t(x)-f_v(x)=\frac{1}{6}x^3-x^2+\frac{11}{6}x-1$  <br>
+**关键点来了**：针对这两个多项式是否相等，只需要选取一个随机点，即可以大概率地进行验证了。过程是这样的。例如，上面所举的例子中，拉格朗日插值法得到两个项式：
+
+$$f_v(x)= -\frac{2}{3}x^3+5x^2-\frac{28}{3}x+6$$
+
+$$f_t(x)= -\frac{1}{2}x^3+4x^2-\frac{15}{2}x+5$$
+
+令 
+
+$$f_s(x)=f_t(x)-f_v(x)=\frac{1}{6}x^3-x^2+\frac{11}{6}x-1$$  
+
  $f_s(x)$ 是一个 $degree=3$ 的多项式，那么 $f_s(x)=0$ 最多仅有3个解，即意味着， $f_v(x)$ 与 $f_t(x)$ 最多仅有3个交点。用这个小示例可知：两个 $d$ 阶的多项式，至多只有 $d$ 个点会相交。
 
 这个小示例因为次数比较低，我们用肉眼当然可以判断二者的系数不等，但协议中并不是通过逐项比较各个系数，而是使用 Schwartz-Zippel 定理的结论进行随机挑战来判断：
 >Schwartz-Zippel 定理:  <br>
-如果有两个多项式 $f(x)$ 和 $g(x)$ 同为两个次数不超过 $d$ 的多项式。那么 Verifier 只需要给出一个随机挑战值 $ζ∈F$ ，计算 $f(ζ)$ 是否等于 $g(ζ)$ 即可大概率得知 $f(x)=g(x)$ ，其中出错的概率 $≤d/|F|$ 。只要保证 $F$ 足够大，那么检查出错的概率就可以忽略不计。
+如果有两个多项式 f(x) 和 g(x) 同为两个次数不超过 d 的多项式。那么 Verifier 只需要给出一个随机挑战值 ζ∈F ，计算 f(ζ) 是否等于 g(ζ) 即可大概率得知 f(x)=g(x) ，其中出错的概率 ≤d/|F| 。只要保证 F 足够大，那么检查出错的概率就可以忽略不计。
 
 那么在上述例子中，最多只可能有3个交点，假设 $x$ 的取值范围扩大为  $F$ ， $|F|=2^{254}$ ,则单次挑战出错的概率 $≤3/2^{254}$ 。
 
@@ -105,35 +114,54 @@ $x1+x2=out1$ \
 这里仅对这个过程作一个简述，详细过程参[郭老师原文章](https://learn.z2o-k7e.world/plonk-intro-cn/plonk-permutation.html)。
 
 #### (1)Grand Product
-证明一个连乘关系：<br>
- $P=q_{0}* q_{1}*q_{2}.....q_{n-2}$ <br>
+证明一个连乘关系：
+
+$$P=q_{0}* q_{1}*q_{2}.....q_{n-2}$$ 
+
 我们通过引入一个中间的辅助向量 $\vec r$ ，使得：<br>
- $r_{0}=1$ <br>
- $r_{k+1}=q_{k}*r_{k}$ <br> 那么，整个连乘过程，可以由以下步骤形成：
+
+$$r_{0}=1$$
+
+$$r_{k+1}=q_{k}*r_{k}$$ 
+
+那么，整个连乘过程，可以由以下步骤形成：
 <div style="text-align: center;">
  <img src="https://hackmd.io/_uploads/HkfU4xhdA.png" width="300"/>
 </div>
 
 这里只要我们可以转换为向{ $q_{i}$ }与{ $r_{i}$ }的形式，我们就可以进行多项式编码了。\
 比如：由<br>
-$r_{0}=1$ <br>
+
+$$r_{0}=1$$
+
 可得到:<br>
- $L_{0}(x)*(r(x)-1)=0$ <br>
-由<br>
- $r_{k+1}=q_{k}*r_{k}$ <br>
-可得到：<br>
-  $q(x)*r(x)=r(w*x)$  <br>
+
+$$L_{0}(x)*(r(x)-1)=0$$
+
+由
+
+$$r_{k+1}=q_{k}*r_{k}$$
+
+可得到：
+
+ $$ q(x)*r(x)=r(w*x) $$  
 
 #### (2)Multiset
 怎么证明，两个集合{ $p_{i}$ }与 { $q_{i}$ }，其中一个集合是另一个集合的乱序重排？\
 如果直接将两个集合中的元素连乘然后判断相等，这种方法是无法证明的。比如反例:{3,6}不等于{9,2}）。\
 这里只需要略作调整。针对将 { $q_{i}$ }集合的元素，看作一个多项式 $q(x)$ 的根。\
 对于集合{ $q_{i}$ }，每个元素作为多项式的根可确定一个多项式，因此有惟一的多项式 $q(x)$ 与之对应:\
- $q(x)=(X-q_{0})(X-q_{1})(X-q_{2})...(X-q_{n-1})$ <br>
+
+$$q(x)=(X-q_{0})(X-q_{1})(X-q_{2})...(X-q_{n-1})$$ 
+
  因此，{ $p_{i}$ }与{ $q_{i}$ }是置换关系，可等价于<br>
- $\prod(X-q_{i})=q(X)=p(X)=\prod(X-p_{i})$ <br> 
+ 
+ $$\prod(X-q_{i})=q(X)=p(X)=\prod(X-p_{i})$$
+
  进一步可等价于：<br>
- $\prod\frac{X-q_{i}}{X-p_{i}}=1$ <br>
+ 
+ $$\prod\frac{X-q_{i}}{X-p_{i}}=1$$
+
 到了这一步，我们已经将它变换为连乘的形式，于是可以使用上一节中的Grand Product了！\
 **这里仍是应用了多项式编码的思想，可见多项式编码的思想贯穿始终！**
 
@@ -144,15 +172,24 @@ Multiset 等价可以被看作是一类特殊的置换证明、或者更准确�
 
 先使用两个向量举例，假设对其进行奇偶换位（这里简化举例，设 $n$ 为偶数）\
 原始向量：<br>
- $\vec a=(a_{0},a_{1},a_{2}.....a_{n-1},a_{n})$ <br>
+
+$$\vec a=(a_{0},a_{1},a_{2}.....a_{n-1},a_{n})$$
+
  换位后的向量：<br>
-  $\vec b=(a_{1},a_{0},a_{3},a_{2}....a_{n},a_{n-1})$ <br>
-  我们需要对向量中的元素的位置进行编码，来标识其换位的情况。\
+
+$$\vec b=(a_{1},a_{0},a_{3},a_{2}....a_{n},a_{n-1})$$
+
+我们需要对向量中的元素的位置进行编码，来标识其换位的情况。\
 换位前的位置:<br>
- $\vec i=(0,1,2.....n-1,n)$ <br>
+ 
+$$\vec i=(0,1,2.....n-1,n)$$
+
 换位后的位置：<br>
- $\vec σ=(2,1,4,3.....n,n-1)$ <br>
- 再将表达信息的向量与其位置的向量，合并在一起，进而可以得到换位前与换位后的合并向量 $a’$ 与 $b’$ ，如下：
+
+$$\vec σ=(2,1,4,3.....n,n-1)$$
+
+再将表达信息的向量与其位置的向量，合并在一起，进而可以得到换位前与换位后的合并向量 $a’$ 与 $b’$ ，如下：
+
 <div style="text-align: center;">
  <img src="https://hackmd.io/_uploads/H1Uktgh_A.png" width="400"/>
 </div>
@@ -160,28 +197,35 @@ Multiset 等价可以被看作是一类特殊的置换证明、或者更准确�
 这里需要再使用一个随机数 $\beta$ （在协议中应在Verifer给出），从而可以将向量的二元素的元组折叠成一个元素。\
 **这里再次看到使用随机数的神奇功效！使用随机数，将两个信息，可以压缩成一个！**
 折叠后的两个向量组如下：
+
 <div style="text-align: center;">
  <img src="https://hackmd.io/_uploads/HJIDFg3dA.png" width="400"/>
 </div>
 
 这里的核心insight是：表达信息的元素的变换，是跟随着其位置变换而变换的，因此可以将对应的信息与其位置编码压缩成一个向量。\
 例如：将 $a_{1}$ 从1号位置变换到 $σ(0)$ 号位置，成了 $b_{0}$ 。那么显然有:<br>
- $a1+1*β=b_{0}+σ(0)*β$ $=b_{0}+1*β$ <br>
+
+ $$a1+1*β=b_{0}+σ(0)*β$$
+ $$=b_{0}+1*β$$ 
+ 
  那么这样，我们就把位置信息也整合进了向量之中。这样就可以使用上一步中的Multiset的方法、最终转化为一个连乘证明了！
 
 #### (4)置换矩阵的位置编码及向量化
 有了以上步骤的基础，现在我们可以回到表达置换关系的 $σ$ 矩阵中进行观察。
+
 <div style="text-align: center;">
  <img src="https://hackmd.io/_uploads/H1qPBw3O0.png" width="250"/>
 </div>
 
 针对这个置换关系，我们对其进行位置编码。（郭老师原文里，置换关系矩阵σ中，对位置的编号为1、2、3、4，而后位置矩阵编号为0、1、2、3。我们这里暂改为采用0、1、2、3）
 置换前的位置编码{ $i_{d}$ }：
+
 <div style="text-align: center;">
  <img src="https://hackmd.io/_uploads/HkZbUP3_C.png" width="235"/>
 </div>
 
 置换后的位置编码{ $σ$ }：
+
 <div style="text-align: center;">
  <img src="https://hackmd.io/_uploads/S1kNUwnuA.png" width="250"/>
 </div>
@@ -189,28 +233,52 @@ Multiset 等价可以被看作是一类特殊的置换证明、或者更准确�
 根据我们在前面获得的**insight**，即**原始信息（W矩阵）与对应的位置信息，不论怎么变换，二者都是相对应的**。那么，我们就可以直接使用两个随机数，将位置与信息两个元素组合起来，然后再将三个向量相乘、从而压缩成一个向量。压缩后向量的连乘，必然满足置换关系。
 
 置换前向量 $\vec f$ 与置换后向量 $\vec g$ 表达如下：<br>
- $f_{i}=(w_{a,i}+\beta\cdot id_{a,i}+\gamma)(w_{b,i}+\beta\cdot id_{b,i}+\gamma)(w_{c,i}+\beta\cdot id_{c,i}+\gamma)$ <br>
+ 
+ $$f_{i}=(w_{a,i}+\beta\cdot id_{a,i}+\gamma)(w_{b,i}+\beta\cdot id_{b,i}+\gamma)(w_{c,i}+\beta\cdot id_{c,i}+\gamma)$$ 
 
- $g_{i}=(w'_{a,i}+\beta\cdot \sigma_{a,i}+\gamma)(w'_{b,i}+\beta\cdot \sigma_{b,i}+\gamma)(w'_{c,i}+\beta\cdot \sigma_{c,i}+\gamma)$ <br>
+ $$g_{i}=(w'_{a,i}+\beta\cdot \sigma_{a,i}+\gamma)(w'_{b,i}+\beta\cdot \sigma_{b,i}+\gamma)(w'_{c,i}+\beta\cdot \sigma_{c,i}+\gamma)$$ 
 
- 不妨对于上述示例做个验证。置换前为：<br>
+ 不妨对于上述示例做个验证。置换前为：
+ 
  $$f_{0}=(w_{a,0}+0\beta+\gamma)(w_{b,0}+4\beta+\gamma)(\color{green}w_{\color{green}c,\color{green}0}+\color{green}8\beta+\gamma)$$
- $$f_{1}=(\color{red}w_{\color{red}a,\color{red}1}+\color{red}1\beta+\gamma)(\color{blue}w_{\color{blue}b,\color{blue}1}+\color{blue}5\beta+\gamma)(\color{green}w_{\color{green}c,\color{green}1}+\color{green}9\beta+\gamma)$$
+
+ $$f_{1}=(\color{red}w_{\color{red}a,\color{red}1}+\color{red}1\beta+\gamma)(\color{blue}w_{\color{blue}b,\color{blue}1}+\color{blue}5\beta+\gamma)(\color{green}w_{\color{green}c,\color{green}1}+\color{green}9\beta+\gamma)$$ 
+
  $$f_{2}=(w_{a,2}+2\beta+\gamma)(w_{b,2}+6\beta+\gamma)(\color{red}w_{\color{red}c,\color{red}2}+\color{red}1\color{red}0\beta+\gamma)$$
+ 
 $$f_{3}=(w_{a,3}+3\beta+\gamma)(w_{b,3}+7\beta+\gamma)(\color{blue}w_{\color{blue}c,\color{blue}3}+\color{blue}1\color{blue}1\beta+\gamma)$$
-置换后为：<br>
+
+置换后为：
+
 $$g_{0}=(w'_{a,0}+0\beta+\gamma)(w'_{b,0}+4\beta+\gamma)(\color{green}w\color{green}'_{\color{green}c,\color{green}0}+\color{green}9\beta+\gamma)$$
+
 $$g_{1}=(\color{red}w\color{red}'_{\color{red}a,\color{red}1}+\color{red}1\color{red}0\beta+\gamma)(\color{blue}w\color{blue}'_{\color{blue}b,\color{blue}1}+\color{blue}1\color{blue}1\beta+\gamma)(\color{green}w\color{green}'_{\color{green}c,\color{green}1}+\color{green}8\beta+\gamma)$$
+
 $$g_{2}=(w_{a,2}+2\beta+\gamma)(w_{b,2}+6\beta+\gamma)(\color{red}w\color{red}'_{\color{red}c,\color{red}2}+\color{red}1\beta+\gamma)$$
+
 $$g_{3}=(w_{a,3}+3\beta+\gamma)(w_{b,3}+7\beta+\gamma)(\color{blue}w\color{blue}'_{\color{blue}c,\color{blue}3}+\color{blue}5\beta+\gamma)$$
-我们可以简单验算一下：\
-{$f_{i}$}包含($w_{c,0}+8β+γ$)、($w_{c,1}+9β+γ$)，而{$g_{i}$}包含($w'_{c,0}+9β+γ$)、($w'_{c,1}+8β+γ$) \
-而由于置换关系，$$\color{green}w_{\color{green}c,\color{green}0}=\color{green}w\color{green}’_{\color{green}c,\color{green}1},且\color{green}w_{\color{green}c,\color{green}1}=\color{green}w\color{green}'_{\color{green}c,\color{green}0}$$
+
+我们可以简单验算一下：<br>
+{ $f_{i}$ }包含( $w_{c,0}+8β+γ$ )、( $w_{c,1}+9β+γ$ )，而{ $g_{i}$ }包含( $w'_{c,0}+9β+γ$ )、( $w'_{c,1}+8β+γ$ ) <br>
+而由于置换关系，
+
+$$\color{green}w_{\color{green}c,\color{green}0}=\color{green}w\color{green}’_{\color{green}c,\color{green}1},且\color{green}w_{\color{green}c,\color{green}1}=\color{green}w\color{green}'_{\color{green}c,\color{green}0}$$
+
 因此：
-$$\color{green}w_{\color{green}c,\color{green}0}+\color{green}8β+γ=\color{green}w\color{green}'_{\color{green}c,\color{green}1}+\color{green}8β+γ$$ 
+
+$$\color{green}w_{\color{green}c,\color{green}0}+\color{green}8β+γ=\color{green}w\color{green}'_{\color{green}c,\color{green}1}+\color{green}8β+γ$$
+
 $$\color{green}w\color{green}'_{\color{green}c,\color{green}1}+\color{green}9β+γ=\color{green}w_{\color{green}c,\color{green}0}+\color{green}9β+γ$$ 
-由此可知在连乘中，对应的项均可以消去。因此，构造的向量{$f_{i}$}与置换后的向量{$g_{i}$}，必然须满足：
-$$\prod f_{i}=\prod g_{i}$$ 等价于：$$\prod \frac{f_{i}}{g_{i}}=1$$ 由此，完全满足进行多项式编码的条件了。
+
+由此可知在连乘中，对应的项均可以消去。因此，构造的向量{ $f_{i}$ }与置换后的向量{ $g_{i}$ }，必然须满足：
+
+$$\prod f_{i}=\prod g_{i}$$
+
+等价于：
+
+$$\prod \frac{f_{i}}{g_{i}}=1$$
+
+由此，完全满足进行多项式编码的条件了。
 
 
 ## 四、多项式编码及约束式计算
@@ -218,33 +286,90 @@ $$\prod f_{i}=\prod g_{i}$$ 等价于：$$\prod \frac{f_{i}}{g_{i}}=1$$ 由此�
 现在，我们终于把电路的约束关系，都用向量的形式，进行了表达！再总结一下：Plonk中电路的约束包含算术约束与置换约束。
 #### 算术约束
 表达为：
+
 $$\vec q_{L}\circ \vec w_{a}+\vec q_{R}\circ \vec w_{b}+\vec q_{M}\circ \vec w_{a}\circ \vec w_{b}+\vec w_{c}+\vec q_{o}\circ w_{c}=0$$
+
 同时对各个向量在定义域H上进行多项式编码、转化为多项式，约束可表达为：
+
 $$q_{L}(X)\cdot w_{a}(X)+q_{R}(X)\cdot w_{b}(X)+q_{M}(X)\cdot w_{a}(X)\cdot w_{b}(X)+q_{c}(X)+q_{o}(X)\cdot w_{c}(X)=0$$
+
 #### 置换约束
 表达为：
-$$z_{0}=1$$ $$z_{i+1}=z_{i}\cdot\frac{f_{i}}{g_{i}}$$ 可编码为：$$z(w^0)=1$$ $$z(wX)\cdot g(X)=z(X)\cdot f(X)$$ 其中：
-$$f(X)=(w_{a}(X)+\beta\cdot id_{a}(X)+\gamma)(w_{b}(X)+\beta\cdot id_{b}(X)+\gamma)(w_{c}(X)+\beta\cdot id_{c}(X)+\gamma)$$ $$g(X)=(w_{a}(X)+\beta\cdot \sigma_{a}(X)+\gamma)(w{b}(X)+\beta\cdot \sigma_{b}(X)+\gamma)(w_{c}(X)+\beta\cdot \sigma_{c}(X)+\gamma)$$
+
+$$z_{0}=1$$ $$z_{i+1}=z_{i}\cdot\frac{f_{i}}{g_{i}}$$ 
+
+可编码为：
+
+$$z(w^0)=1$$ $$z(wX)\cdot g(X)=z(X)\cdot f(X)$$
+
+其中：
+
+$$f(X)=(w_{a}(X)+\beta\cdot id_{a}(X)+\gamma)(w_{b}(X)+\beta\cdot id_{b}(X)+\gamma)(w_{c}(X)+\beta\cdot id_{c}(X)+\gamma)$$ 
+
+$$g(X)=(w_{a}(X)+\beta\cdot \sigma_{a}(X)+\gamma)(w{b}(X)+\beta\cdot \sigma_{b}(X)+\gamma)(w_{c}(X)+\beta\cdot \sigma_{c}(X)+\gamma)$$
+
 ### 简化计算的技巧方法
 这里为了使运算更简化，整个过程中还用到了几个常用的技巧或方法。
 1. 存放公开参数\
-这就需要再引入一个新的列，专门存放公开参数，记为 φ。这样，就不必将公开值（out)固定为常数。这样，改变一个输出值，也不会使得多项式$q_{c}(X)$重新计算。然后，将算术约束式表示为：$$q_{L}(X)\cdot w_{a}(X)+q_{R}(X)\cdot w_{b}(X)+q_{M}(X)\cdot w_{a}(X)\cdot w_{b}(X)+q_{c}(X)-q_{o}(X)\cdot w_{c}(X)+φ(X)=0$$
+这就需要再引入一个新的列，专门存放公开参数，记为 φ。这样，就不必将公开值( $out$ )固定为常数。这样，改变一个输出值，也不会使得多项式  $q_{c}(X)$ 重新计算。然后，将算术约束式表示为：
+
+$$q_{L}(X)\cdot w_{a}(X)+q_{R}(X)\cdot w_{b}(X)+q_{M}(X)\cdot w_{a}(X)\cdot w_{b}(X)+q_{c}(X)-q_{o}(X)\cdot w_{c}(X)+φ(X)=0$$
+
 2. 编码时，多项式根的选取\
-最开始多项式编码的示例，随意取多项式根$H=[1,2,3,4]$。在协议中，实际上为针对有限域$F_{p}$，选取其乘法子群$H=\left\{1,w^1, w^2, \ldots, w^{n-1}\right\}$, 且$n=2^k$,
+最开始多项式编码的示例，随意取多项式根 $H=[1,2,3,4]$ 。在协议中，实际上为针对有限域 $F_{p}$ ，选取其乘法子群 $H={1,w^1, w^2,... w^{n-1}}$ , 且 $n=2^k$ ,
 如此可以满足在多项式编码的计算过程中，可简化计算，如下式所示:
+
 $$\prod_{i=0}^{n-1}(X-w^i)=X^n-1$$ 
+
 3. 置换关系中，位置编码的选取\
 我们在前面示例中，置换关系的位置编码是随意选择自然数（0,1,2...）作为位置编码。而实际上，巧妙地选择位置编码，可以进一步减少工作量。按如下方法选择：
-$${id_{a}}=(1,w,w^2,w^3)$$ $${id_{b}}=(k_1,k_1w,k_1w^2,k_1w^3)$$ $${id_{c}}=(k_2,k_2w,k_2w^2,k_2w^3)$$ 由此，对这些向量进行多项式编码时，就可以轻松的得到：
-$$id_{a}(X)=X$$ $$id_{b}(X)=k_1X$$ $$id_{c}(X)=k_2X$$ 其中：k1、k2为互相不等的要·二次非剩余。
+
+$${id_{a}}=(1,w,w^2,w^3)$$
+
+$${id_{b}}=(k_1,k_1w,k_1w^2,k_1w^3)$$
+
+$${id_{c}}=(k_2,k_2w,k_2w^2,k_2w^3)$$ 
+
+由此，对这些向量进行多项式编码时，就可以轻松的得到：
+$$id_{a}(X)=X$$ 
+
+$$id_{b}(X)=k_1X$$ 
+
+$$id_{c}(X)=k_2X$$ 
+
+其中：k1、k2为互相不等的要·二次非剩余。
 
 ### 约束多项式的聚合
 终于！有了上述内容，我们可以将上述约束的多项式，做一个聚合了！（本文于第五部分中附上Demo级的代码示例，以下的公式与代码示例中一致.）
 
 针对以下三个式子作聚合：
-$$q_{L}(X)\cdot w_{a}(X)+q_{R}(X)\cdot w_{b}(X)+q_{M}(X)\cdot w_{a}(X)\cdot w_{b}(X)+q_{c}(X)-q_{o}(X)\cdot w_{c}(X)+φ(X)=0$$ $$z(w^0)=1$$ $$z(wX)\cdot g(X)=z(X)\cdot f(X)$$ 我们用$C_{1}(X)、C_{2}(X)、C_{3}(X)$来表达以下三个式子：
-$$C_{1}(X)=q_{L}(X)\cdot w_{a}(X)+q_{R}(X)\cdot w_{b}(X)+q_{M}(X)\cdot w_{a}(X)\cdot w_{b}(X)+q_{c}(X)-q_{o}(X)\cdot w_{c}(X)+φ(X)$$ $$C_{2}(X)=z(wX)\cdot g(X)-z(X)\cdot f(X)$$ $$C_{3}(X)=L_{0}(X)\cdot (z(X)-1)$$ 然后计算：
-$$z_{H}(X)=X^n-1$$ 最后，使用随机数α聚合，即可得到：$$C_{Combine}(X)=C_{1}(X)+\alpha \cdot C_{2}(X)+\alpha^2 \cdot C_{3}(X)$$ 而商多项式：$$t(X)=\frac{C_{Combine}(X)}{z_{H}(X)}$$
+
+$$q_{L}(X)\cdot w_{a}(X)+q_{R}(X)\cdot w_{b}(X)+q_{M}(X)\cdot w_{a}(X)\cdot w_{b}(X)+q_{c}(X)-q_{o}(X)\cdot w_{c}(X)+φ(X)=0$$ 
+
+$$z(w^0)=1$$
+
+$$z(wX)\cdot g(X)=z(X)\cdot f(X)$$
+
+我们用 $C_{1}(X)、C_{2}(X)、C_{3}(X)$ 来表达以下三个式子：<br>
+ 
+$$C_{1}(X)=q_{L}(X)\cdot w_{a}(X)+q_{R}(X)\cdot w_{b}(X)+q_{M}(X)\cdot w_{a}(X)\cdot w_{b}(X)+q_{c}(X)-q_{o}(X)\cdot w_{c}(X)+φ(X)$$
+
+
+$$C_{2}(X)=z(wX)\cdot g(X)-z(X)\cdot f(X)$$ 
+
+$$C_{3}(X)=L_{0}(X)\cdot (z(X)-1)$$ 
+
+ 然后计算：<br>
+ 
+$$z_{H}(X)=X^n-1$$ 
+
+最后，使用随机数α聚合，即可得到：
+
+$$C_{Combine}(X)=C_{1}(X)+\alpha \cdot C_{2}(X)+\alpha^2 \cdot C_{3}(X)$$ 
+
+而商多项式：
+
+$$t(X)=\frac{C_{Combine}(X)}{z_{H}(X)}$$
 
 ### 随机挑战验证
 Verifier通过发送随机挑战数 ζ，来检查的各个多项式的打开值，对结果进行验证。这个部分可详[郭老师的文章](https://learn.z2o-k7e.world/plonk-intro-cn/plonk-constraints.html)，本文仅侧重于整个流程的演进，此处不再叙述这部分。
@@ -253,7 +378,7 @@ Verifier通过发送随机挑战数 ζ，来检查的各个多项式的打开�
 最后，对上述内容附上对应的零基础入门级Demo代码示例，针对以上流程所述及的部分作个示例解释。示例说明如下：
 1. 示例中不包括Plonkish部分，而是直接将已经算术化的电路 $W$ 矩阵与 $σ$ 矩阵直接作为输入。可参考Plonkathon代码中的Program模块，作为实际项目中的一种算术化过程。
 2. 示例中不包含多项式承诺及最后的随机数挑战验证环节。本示例仅对多项式计算进行验证。
-3. 示例中，选取一个较小的域$F101$来进行演示，整个过程可以跟踪得更直观。
+3. 示例中，选取一个较小的域 $F101$ 来进行演示，整个过程可以跟踪得更直观。
 
 ### 导入库、初始定义
 ~~~python
@@ -572,28 +697,24 @@ Multiset 等价可以被看作是一类特殊的置换证明、或者更准确�
 根据我们在前面获得的**insight**，即**原始信息（W矩阵）与对应的位置信息，不论怎么变换，二者都是相对应的**。那么，我们就可以直接使用两个随机数，将位置与信息两个元素组合起来，然后再将三个向量相乘、从而压缩成一个向量。压缩后向量的连乘，必然满足置换关系。
 
 置换向量$\vec f$与置换后向量$\vec g$表达如下：
-$$f_{i}=(w_{a,i}+\beta\cdot id_{a,i}+\gamma)(w_{b,i}+\beta\cdot id_{b,i}+\gamma)(w_{c,i}+\beta\cdot id_{c,i}+\gamma)$$ $$g_{i}=(w'_{a,i}+\beta\cdot \sigma_{a,i}+\gamma)(w'_{b,i}+\beta\cdot \sigma_{b,i}+\gamma)(w'_{c,i}+\beta\cdot \sigma_{c,i}+\gamma)$$ 不妨对于上述示例做个验证。置换前为：
-$$
-f_{0}=(w_{a,0}+0\beta+\gamma)(w_{b,0}+4\beta+\gamma)(\color{green}w_{\color{green}c,\color{green}0}+\color{green}8\beta+\gamma)
-$$$$
-f_{1}=(\color{red}w_{\color{red}a,\color{red}1}+\color{red}1\beta+\gamma)(\color{blue}w_{\color{blue}b,\color{blue}1}+\color{blue}5\beta+\gamma)(\color{green}w_{\color{green}c,\color{green}1}+\color{green}9\beta+\gamma)
-$$$$
-f_{2}=(w_{a,2}+2\beta+\gamma)(w_{b,2}+6\beta+\gamma)(\color{red}w_{\color{red}c,\color{red}2}+\color{red}1\color{red}0\beta+\gamma)
-$$$$
-f_{3}=(w_{a,3}+3\beta+\gamma)(w_{b,3}+7\beta+\gamma)(\color{blue}w_{\color{blue}c,\color{blue}3}+\color{blue}1\color{blue}1\beta+\gamma)
-$$置换后为：
-$$
-g_{0}=(w'_{a,0}+0\beta+\gamma)(w'_{b,0}+4\beta+\gamma)(\color{green}w\color{green}'_{\color{green}c,\color{green}0}+\color{green}9\beta+\gamma)
-$$$$
-g_{1}=(\color{red}w\color{red}'_{\color{red}a,\color{red}1}+\color{red}1\color{red}0\beta+\gamma)(\color{blue}w\color{blue}'_{\color{blue}b,\color{blue}1}+\color{blue}1\color{blue}1\beta+\gamma)(\color{green}w\color{green}'_{\color{green}c,\color{green}1}+\color{green}8\beta+\gamma)
-$$$$
-g_{2}=(w_{a,2}+2\beta+\gamma)(w_{b,2}+6\beta+\gamma)(\color{red}w\color{red}'_{\color{red}c,\color{red}2}+\color{red}1\beta+\gamma)
-$$$$
-g_{3}=(w_{a,3}+3\beta+\gamma)(w_{b,3}+7\beta+\gamma)(\color{blue}w\color{blue}'_{\color{blue}c,\color{blue}3}+\color{blue}5\beta+\gamma)
-$$我们可以简单验算一下：\
-{$f_{i}$}包含($w_{c,0}+8β+γ$)、($w_{c,1}+9β+γ$)，而{$g_{i}$}包含($w'_{c,0}+9β+γ$)、($w'_{c,1}+8β+γ$) \
-而由于置换关系，$\color{green}w_{\color{green}c,\color{green}0}=\color{green}w\color{green}’_{\color{green}c,\color{green}1},且\color{green}w_{\color{green}c,\color{green}1}=\color{green}w\color{green}'_{\color{green}c,\color{green}0}$，因此：
-$$\color{green}w_{\color{green}c,\color{green}0}+\color{green}8β+γ=\color{green}w\color{green}'_{\color{green}c,\color{green}1}+\color{green}8β+γ$$ $$\color{green}w\color{green}'_{\color{green}c,\color{green}1}+\color{green}9β+γ=\color{green}w_{\color{green}c,\color{green}0}+\color{green}9β+γ$$ 由此可知在连乘中，对应的项均可以消去。因此，构造的向量{$f_{i}$}与置换后的向量{$g_{i}$}，必然须满足：
+
+<div style="text-align: center;">
+ <img src="[https://hackmd.io/_uploads/S1kNUwnuA.png](https://hackmd.io/_uploads/BJJrr1MYR.png)" width="400"/>
+</div>
+
+不妨对于上述示例做个验证。置换前为：
+
+<div style="text-align: center;">
+ <img src="[https://hackmd.io/_uploads/SkurByfKA.png](https://hackmd.io/_uploads/SkurByfKA.png)" width="400"/>
+</div>
+
+我们可以简单验算一下：
+
+<div style="text-align: center;">
+ <img src="[https://hackmd.io/_uploads/B1yLSyMtC.png](https://hackmd.io/_uploads/B1yLSyMtC.png)" width="400"/>
+</div>
+
+由此可知在连乘中，对应的项均可以消去。因此，构造的向量{$f_{i}$}与置换后的向量{$g_{i}$}，必然须满足：
 $$\prod f_{i}=\prod g_{i}$$ 等价于：$$\prod \frac{f_{i}}{g_{i}}=1$$ 由此，完全满足进行多项式编码的条件了。
 
 
