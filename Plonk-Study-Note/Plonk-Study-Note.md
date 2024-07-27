@@ -232,6 +232,35 @@ $$\vec σ=(2,1,4,3.....n,n-1)$$
 
 根据我们在前面获得的**insight**，即**原始信息（W矩阵）与对应的位置信息，不论怎么变换，二者都是相对应的**。那么，我们就可以直接使用两个随机数，将位置与信息两个元素组合起来，然后再将三个向量相乘、从而压缩成一个向量。压缩后向量的连乘，必然满足置换关系。
 
+
+置换前向量 $\vec f$ 与置换后向量 $\vec g$ 表达如下：<br>
+ 
+ $$f_{i}=(w_{a,i}+\beta\cdot id_{a,i}+\gamma)(w_{b,i}+\beta\cdot id_{b,i}+\gamma)(w_{c,i}+\beta\cdot id_{c,i}+\gamma)$$ 
+
+ $$g_{i}=(w'_{a,i}+\beta\cdot \sigma_{a,i}+\gamma)(w'_{b,i}+\beta\cdot \sigma_{b,i}+\gamma)(w'_{c,i}+\beta\cdot \sigma_{c,i}+\gamma)$$ 
+
+ 不妨对于上述示例做个验证。置换前为：
+ 
+ $$f_{0}=(w_{a,0}+0\beta+\gamma)(w_{b,0}+4\beta+\gamma)(\color{green}w_{\color{green}c,\color{green}0}+\color{green}8\beta+\gamma)$$
+
+ $$f_{1}=(\color{red}w_{\color{red}a,\color{red}1}+\color{red}1\beta+\gamma)(\color{blue}w_{\color{blue}b,\color{blue}1}+\color{blue}5\beta+\gamma)(\color{green}w_{\color{green}c,\color{green}1}+\color{green}9\beta+\gamma)$$ 
+
+ $$f_{2}=(w_{a,2}+2\beta+\gamma)(w_{b,2}+6\beta+\gamma)(\color{red}w_{\color{red}c,\color{red}2}+\color{red}1\color{red}0\beta+\gamma)$$
+ 
+$$f_{3}=(w_{a,3}+3\beta+\gamma)(w_{b,3}+7\beta+\gamma)(\color{blue}w_{\color{blue}c,\color{blue}3}+\color{blue}1\color{blue}1\beta+\gamma)$$
+
+置换后为：
+
+$$g_{0}=(w'_{a,0}+0\beta+\gamma)(w'_{b,0}+4\beta+\gamma)(\color{green}w\color{green}'_{\color{green}c,\color{green}0}+\color{green}9\beta+\gamma)$$
+
+$$g_{1}=(\color{red}w\color{red}'_{\color{red}a,\color{red}1}+\color{red}1\color{red}0\beta+\gamma)(\color{blue}w\color{blue}'_{\color{blue}b,\color{blue}1}+\color{blue}1\color{blue}1\beta+\gamma)(\color{green}w\color{green}'_{\color{green}c,\color{green}1}+\color{green}8\beta+\gamma)$$
+
+$$g_{2}=(w_{a,2}+2\beta+\gamma)(w_{b,2}+6\beta+\gamma)(\color{red}w\color{red}'_{\color{red}c,\color{red}2}+\color{red}1\beta+\gamma)$$
+
+$$g_{3}=(w_{a,3}+3\beta+\gamma)(w_{b,3}+7\beta+\gamma)(\color{blue}w\color{blue}'_{\color{blue}c,\color{blue}3}+\color{blue}5\beta+\gamma)$$
+
+
+
 置换前向量 $\vec f$ 与置换后向量 $\vec g$ 表达如下：<br>
  
 <div style="text-align: center;">
@@ -622,12 +651,13 @@ $$\vec q_{L}\circ \vec w_{a}+\vec q_{R}\circ \vec w_{b}+\vec q_{M}\circ (\vec w_
 $P=q_{0}* q_{1}*q_{2}.....q_{n-2}$\
 我们通过引入一个中间的辅助向量$\vec r$ ，使得：
 $$r_{0}=1$$ $$r_{k+1}=q_{k}*r_{k}$$ 那么，整个连乘过程，可以由以下步骤形成：
+
 <div style="text-align: center;">
  <img src="https://hackmd.io/_uploads/HkfU4xhdA.png" width="300"/>
 </div>
 
-这里只要我们可以转换为向{ $q_{i}$ }与{ $r_{i}$ }的形式，我们就可以进行多项式编码了。\
-比如：由$$r_{0}=1$$可得到:$$L_{0}(x)*(r(x)-1)=0$$由$$r_{k+1}=q_{k}*r_{k}$$可得到：$$q(x)*r(x)=r(w*x)$$
+这里只要我们可以转换为向量{ $q_{i}$ }与{ $r_{i}$ }的形式，我们就可以进行多项式编码了。\
+比如：由 $r_{0}=1$ 可得到: $L_{0}(x)*(r(x)-1)=0$ 。由 $r_{k+1}=q_{k}*r_{k}$ 可得到： $q(x)*r(x)=r(w*x)$ 
 
 #### (2)Multiset
 怎么证明，两个集合{ $p_{i}$ }与 { $q_{i}$ }，其中一个集合是另一个集合的乱序重排？\
