@@ -194,30 +194,22 @@ Multiset 等价可以被看作是一类特殊的置换证明、或者更准确�
  $g_{i}=(w'_{a,i}+\beta\cdot \sigma_{a,i}+\gamma)(w'_{b,i}+\beta\cdot \sigma_{b,i}+\gamma)(w'_{c,i}+\beta\cdot \sigma_{c,i}+\gamma)$ <br>
 
  不妨对于上述示例做个验证。置换前为：<br>
- $f_{0}=(w_{a,0}+0\beta+\gamma)(w_{b,0}+4\beta+\gamma)(\color{green}w_{\color{green}c,\color{green}0}+\color{green}8\beta+\gamma)$ <br>
-
- $f_{1}=(\color{red}w_{\color{red}a,\color{red}1}+\color{red}1\beta+\gamma)(\color{blue}w_{\color{blue}b,\color{blue}1}+\color{blue}5\beta+\gamma)(\color{green}w_{\color{green}c,\color{green}1}+\color{green}9\beta+\gamma)$ <br>
-
-
-
-
- $f_{2}=(w_{a,2}+2\beta+\gamma)(w_{b,2}+6\beta+\gamma)(\color{red}w_{\color{red}c,\color{red}2}+\color{red}1\color{red}0\beta+\gamma)$
- 
-$f_{3}=(w_{a,3}+3\beta+\gamma)(w_{b,3}+7\beta+\gamma)(\color{blue}w_{\color{blue}c,\color{blue}3}+\color{blue}1\color{blue}1\beta+\gamma)$
-
+ $$f_{0}=(w_{a,0}+0\beta+\gamma)(w_{b,0}+4\beta+\gamma)(\color{green}w_{\color{green}c,\color{green}0}+\color{green}8\beta+\gamma)$$
+ $$f_{1}=(\color{red}w_{\color{red}a,\color{red}1}+\color{red}1\beta+\gamma)(\color{blue}w_{\color{blue}b,\color{blue}1}+\color{blue}5\beta+\gamma)(\color{green}w_{\color{green}c,\color{green}1}+\color{green}9\beta+\gamma)$$
+ $$f_{2}=(w_{a,2}+2\beta+\gamma)(w_{b,2}+6\beta+\gamma)(\color{red}w_{\color{red}c,\color{red}2}+\color{red}1\color{red}0\beta+\gamma)$$
+$$f_{3}=(w_{a,3}+3\beta+\gamma)(w_{b,3}+7\beta+\gamma)(\color{blue}w_{\color{blue}c,\color{blue}3}+\color{blue}1\color{blue}1\beta+\gamma)$$
 置换后为：<br>
-$g_{0}=(w'_{a,0}+0\beta+\gamma)(w'_{b,0}+4\beta+\gamma)(\color{green}w\color{green}'_{\color{green}c,\color{green}0}+\color{green}9\beta+\gamma)$
-
-$g_{1}=(\color{red}w\color{red}'_{\color{red}a,\color{red}1}+\color{red}1\color{red}0\beta+\gamma)(\color{blue}w\color{blue}'_{\color{blue}b,\color{blue}1}+\color{blue}1\color{blue}1\beta+\gamma)(\color{green}w\color{green}'_{\color{green}c,\color{green}1}+\color{green}8\beta+\gamma)$
-
-$$$
-g_{2}=(w_{a,2}+2\beta+\gamma)(w_{b,2}+6\beta+\gamma)(\color{red}w\color{red}'_{\color{red}c,\color{red}2}+\color{red}1\beta+\gamma)
-$$$$
-g_{3}=(w_{a,3}+3\beta+\gamma)(w_{b,3}+7\beta+\gamma)(\color{blue}w\color{blue}'_{\color{blue}c,\color{blue}3}+\color{blue}5\beta+\gamma)
-$$我们可以简单验算一下：\
+$$g_{0}=(w'_{a,0}+0\beta+\gamma)(w'_{b,0}+4\beta+\gamma)(\color{green}w\color{green}'_{\color{green}c,\color{green}0}+\color{green}9\beta+\gamma)$$
+$$g_{1}=(\color{red}w\color{red}'_{\color{red}a,\color{red}1}+\color{red}1\color{red}0\beta+\gamma)(\color{blue}w\color{blue}'_{\color{blue}b,\color{blue}1}+\color{blue}1\color{blue}1\beta+\gamma)(\color{green}w\color{green}'_{\color{green}c,\color{green}1}+\color{green}8\beta+\gamma)$$
+$$g_{2}=(w_{a,2}+2\beta+\gamma)(w_{b,2}+6\beta+\gamma)(\color{red}w\color{red}'_{\color{red}c,\color{red}2}+\color{red}1\beta+\gamma)$$
+$$g_{3}=(w_{a,3}+3\beta+\gamma)(w_{b,3}+7\beta+\gamma)(\color{blue}w\color{blue}'_{\color{blue}c,\color{blue}3}+\color{blue}5\beta+\gamma)$$
+我们可以简单验算一下：\
 {$f_{i}$}包含($w_{c,0}+8β+γ$)、($w_{c,1}+9β+γ$)，而{$g_{i}$}包含($w'_{c,0}+9β+γ$)、($w'_{c,1}+8β+γ$) \
-而由于置换关系，$\color{green}w_{\color{green}c,\color{green}0}=\color{green}w\color{green}’_{\color{green}c,\color{green}1},且\color{green}w_{\color{green}c,\color{green}1}=\color{green}w\color{green}'_{\color{green}c,\color{green}0}$，因此：
-$$\color{green}w_{\color{green}c,\color{green}0}+\color{green}8β+γ=\color{green}w\color{green}'_{\color{green}c,\color{green}1}+\color{green}8β+γ$$ $$\color{green}w\color{green}'_{\color{green}c,\color{green}1}+\color{green}9β+γ=\color{green}w_{\color{green}c,\color{green}0}+\color{green}9β+γ$$ 由此可知在连乘中，对应的项均可以消去。因此，构造的向量{$f_{i}$}与置换后的向量{$g_{i}$}，必然须满足：
+而由于置换关系，$$\color{green}w_{\color{green}c,\color{green}0}=\color{green}w\color{green}’_{\color{green}c,\color{green}1},且\color{green}w_{\color{green}c,\color{green}1}=\color{green}w\color{green}'_{\color{green}c,\color{green}0}$$
+因此：
+$$\color{green}w_{\color{green}c,\color{green}0}+\color{green}8β+γ=\color{green}w\color{green}'_{\color{green}c,\color{green}1}+\color{green}8β+γ$$ 
+$$\color{green}w\color{green}'_{\color{green}c,\color{green}1}+\color{green}9β+γ=\color{green}w_{\color{green}c,\color{green}0}+\color{green}9β+γ$$ 
+由此可知在连乘中，对应的项均可以消去。因此，构造的向量{$f_{i}$}与置换后的向量{$g_{i}$}，必然须满足：
 $$\prod f_{i}=\prod g_{i}$$ 等价于：$$\prod \frac{f_{i}}{g_{i}}=1$$ 由此，完全满足进行多项式编码的条件了。
 
 
@@ -226,7 +218,8 @@ $$\prod f_{i}=\prod g_{i}$$ 等价于：$$\prod \frac{f_{i}}{g_{i}}=1$$ 由此�
 现在，我们终于把电路的约束关系，都用向量的形式，进行了表达！再总结一下：Plonk中电路的约束包含算术约束与置换约束。
 #### 算术约束
 表达为：
-$$\vec q_{L}\circ \vec w_{a}+\vec q_{R}\circ \vec w_{b}+\vec q_{M}\circ \vec w_{a}\circ \vec w_{b}+\vec w_{c}+\vec q_{o}\circ w_{c}=0$$同时对各个向量在定义域H上进行多项式编码、转化为多项式，约束可表达为：
+$$\vec q_{L}\circ \vec w_{a}+\vec q_{R}\circ \vec w_{b}+\vec q_{M}\circ \vec w_{a}\circ \vec w_{b}+\vec w_{c}+\vec q_{o}\circ w_{c}=0$$
+同时对各个向量在定义域H上进行多项式编码、转化为多项式，约束可表达为：
 $$q_{L}(X)\cdot w_{a}(X)+q_{R}(X)\cdot w_{b}(X)+q_{M}(X)\cdot w_{a}(X)\cdot w_{b}(X)+q_{c}(X)+q_{o}(X)\cdot w_{c}(X)=0$$
 #### 置换约束
 表达为：
