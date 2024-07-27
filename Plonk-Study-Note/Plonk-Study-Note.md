@@ -234,35 +234,21 @@ $$\vec σ=(2,1,4,3.....n,n-1)$$
 
 置换前向量 $\vec f$ 与置换后向量 $\vec g$ 表达如下：<br>
  
- $$f_{i}=(w_{a,i}+\beta\cdot id_{a,i}+\gamma)(w_{b,i}+\beta\cdot id_{b,i}+\gamma)(w_{c,i}+\beta\cdot id_{c,i}+\gamma)$$ 
-
- $$g_{i}=(w'_{a,i}+\beta\cdot \sigma_{a,i}+\gamma)(w'_{b,i}+\beta\cdot \sigma_{b,i}+\gamma)(w'_{c,i}+\beta\cdot \sigma_{c,i}+\gamma)$$ 
-
+<div style="text-align: center;">
+ <img src="https://hackmd.io/_uploads/BJJrr1MYR.png" width="700"/>
+</div>
+ 
  不妨对于上述示例做个验证。置换前为：
  
- $$f_{0}=(w_{a,0}+0\beta+\gamma)(w_{b,0}+4\beta+\gamma)(\color{green}w_{\color{green}c,\color{green}0}+\color{green}8\beta+\gamma)$$
-
- $$f_{1}=(\color{red}w_{\color{red}a,\color{red}1}+\color{red}1\beta+\gamma)(\color{blue}w_{\color{blue}b,\color{blue}1}+\color{blue}5\beta+\gamma)(\color{green}w_{\color{green}c,\color{green}1}+\color{green}9\beta+\gamma)$$ 
-
- $$f_{2}=(w_{a,2}+2\beta+\gamma)(w_{b,2}+6\beta+\gamma)(\color{red}w_{\color{red}c,\color{red}2}+\color{red}1\color{red}0\beta+\gamma)$$
- 
-$$f_{3}=(w_{a,3}+3\beta+\gamma)(w_{b,3}+7\beta+\gamma)(\color{blue}w_{\color{blue}c,\color{blue}3}+\color{blue}1\color{blue}1\beta+\gamma)$$
-
-置换后为：
-
-$$g_{0}=(w'_{a,0}+0\beta+\gamma)(w'_{b,0}+4\beta+\gamma)(\color{green}w\color{green}'_{\color{green}c,\color{green}0}+\color{green}9\beta+\gamma)$$
-
-$$g_{1}=(\color{red}w\color{red}'_{\color{red}a,\color{red}1}+\color{red}1\color{red}0\beta+\gamma)(\color{blue}w\color{blue}'_{\color{blue}b,\color{blue}1}+\color{blue}1\color{blue}1\beta+\gamma)(\color{green}w\color{green}'_{\color{green}c,\color{green}1}+\color{green}8\beta+\gamma)$$
-
-$$g_{2}=(w_{a,2}+2\beta+\gamma)(w_{b,2}+6\beta+\gamma)(\color{red}w\color{red}'_{\color{red}c,\color{red}2}+\color{red}1\beta+\gamma)$$
-
-$$g_{3}=(w_{a,3}+3\beta+\gamma)(w_{b,3}+7\beta+\gamma)(\color{blue}w\color{blue}'_{\color{blue}c,\color{blue}3}+\color{blue}5\beta+\gamma)$$
+<div style="text-align: center;">
+ <img src="https://hackmd.io/_uploads/SkurByfKA.png" width="700"/>
+</div>
 
 我们可以简单验算一下：<br>
-{ $f_{i}$ }包含( $w_{c,0}+8β+γ$ )、( $w_{c,1}+9β+γ$ )，而{ $g_{i}$ }包含( $w'_{c,0}+9β+γ$ )、( $w'_{c,1}+8β+γ$ ) <br>
-而由于置换关系，
 
-$$\color{green}w_{\color{green}c,\color{green}0}=\color{green}w\color{green}’_{\color{green}c,\color{green}1},且\color{green}w_{\color{green}c,\color{green}1}=\color{green}w\color{green}'_{\color{green}c,\color{green}0}$$
+<div style="text-align: center;">
+ <img src="https://hackmd.io/_uploads/B1yLSyMtC.png" width="700"/>
+</div>
 
 因此：
 
