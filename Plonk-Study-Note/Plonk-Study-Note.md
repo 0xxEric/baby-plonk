@@ -2,7 +2,7 @@
 ## 前言
 学习完郭老师的Plonk系列，并且跟着各位老师在本期共学社学习了一遍，对Plonk有一些基本的认识，于是想对本次学习内容做个整理。  
 
-因为我自己是初学小白（在本次学习之前完全零基础，亦非Web3背景），学习Plonk经历过从0开始的这个阶段。因此，在整理笔记，也想可以对同样零基础小白的同学有所帮助。也在写的过程中将内容重新做了梳理、在自己原计划的基础上做了一些扩充。可能对于已经熟悉的同学而言，内容及行文略显啰嗦。<br> 
+因为自己是从初学小白（在本次学习之前完全零基础，亦非Web3背景）开始，学习Plonk经历过从0开始的阶段。因此，在整理笔记，想可以对同样零基础的同学有所帮助。也在写的过程中将内容重新做了梳理、调整或扩充。可能对于已经熟悉的同学而言，内容及行文略显啰嗦。<br> 
 
 另外，Github对于数学公式渲染显示的支持有限，部分内容显示效果不佳。本文可另详[hackmd版本链接](https://hackmd.io/@Dt_nNFZZRDmdFriUTBb_gw/Skd5EsouR)（显示效果更好）。
 
@@ -181,8 +181,8 @@ $$\vec σ=(2,1,4,3.....n,n-1)$$
 
 再将表达信息的向量与其位置的向量，合并在一起，进而可以得到换位前与换位后的合并向量 $a’$ 与 $b’$ ，如下：
 
-<div style="text-align: center;">
- <img src="https://hackmd.io/_uploads/H1Uktgh_A.png" width="400"/>
+<div align="center">
+ <img src="https://hackmd.io/_uploads/H1Uktgh_A.png" width="350"/>
 </div>
 
 这里需要再使用一个随机数 $\beta$ （在协议中应在Verifer给出），从而可以将向量的二元素的元组折叠成一个元素。\
@@ -190,7 +190,7 @@ $$\vec σ=(2,1,4,3.....n,n-1)$$
 折叠后的两个向量组如下：
 
 <div align="center">
- <img src="https://hackmd.io/_uploads/HJIDFg3dA.png" width="400"/>
+ <img src="https://hackmd.io/_uploads/HJIDFg3dA.png" width="350"/>
 </div>
 
 这里的核心insight是：表达信息的元素的变换，是跟随着其位置变换而变换的，因此可以将对应的信息与其位置编码压缩成一个向量。\
@@ -224,19 +224,19 @@ $$\vec σ=(2,1,4,3.....n,n-1)$$
 置换前向量 $f$ 与置换后向量 $g$ 表达如下：<br>
  
 <div align="center">
- <img src="https://hackmd.io/_uploads/BJJrr1MYR.png" width="700"/>
+ <img src="https://hackmd.io/_uploads/BJJrr1MYR.png" width="550"/>
 </div>
  
  不妨对于上述示例做个验证。置换前为：
  
 <div align="center">
- <img src="https://hackmd.io/_uploads/SkurByfKA.png" width="700"/>
+ <img src="https://hackmd.io/_uploads/SkurByfKA.png" width="550"/>
 </div>
 
 我们可以简单验算一下：<br>
 
 <div align="center">
- <img src="https://hackmd.io/_uploads/B1yLSyMtC.png" width="700"/>
+ <img src="https://hackmd.io/_uploads/B1yLSyMtC.png" width="550"/>
 </div>
 
 由此可知在连乘中，对应的项均可以消去。因此，构造的向量{ $f_{i}$ }与置换后的向量{ $g_{i}$ }，必然须满足：
