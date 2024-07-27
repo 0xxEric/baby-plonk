@@ -84,7 +84,7 @@ $$f_s(x)=f_t(x)-f_v(x)=\frac{1}{6}x^3-x^2+\frac{11}{6}x-1$$
 
 - 置换约束
 如下图所示的两个电路，其 $Q$ 矩阵虽然完全相同，但这两个电路却完全不同。
-<div style="text-align: center;">
+<div align="center">
  <img src="https://hackmd.io/_uploads/rkgoZxnd0.png" width="700"/>
 </div>
 
@@ -95,7 +95,7 @@ $x1+x2=out1$ \
 这里第一个加法门的输出 $out1$ ，作为了第二个乘法门的左输入 $x6$ ，其实暗含了 $out1=x6$ 。
 因此，这里两个有关联的约束门之间，二者还必须需要有关联约束。\
 在Plonk中使用一种置换关系矩阵 $σ$ ，来表达这种关联约束，如下表:
-<div style="text-align: center;">
+<div align="center">
  <img src="https://hackmd.io/_uploads/SJUEQx3_C.png" width="250"/>
 </div>
 
@@ -118,7 +118,7 @@ $$r_{0}=1$$
 $$r_{k+1}=q_{k}*r_{k}$$ 
 
 那么，整个连乘过程，可以由以下步骤形成：
-<div style="text-align: center;">
+<div align="center">
  <img src="https://hackmd.io/_uploads/HkfU4xhdA.png" width="300"/>
 </div>
 
@@ -189,7 +189,7 @@ $$\vec σ=(2,1,4,3.....n,n-1)$$
 **这里再次看到使用随机数的神奇功效！使用随机数，将两个信息，可以压缩成一个！**
 折叠后的两个向量组如下：
 
-<div style="text-align: center;">
+<div align="center">
  <img src="https://hackmd.io/_uploads/HJIDFg3dA.png" width="400"/>
 </div>
 
@@ -203,39 +203,39 @@ $$\vec σ=(2,1,4,3.....n,n-1)$$
 #### (4)置换矩阵的位置编码及向量化
 有了以上步骤的基础，现在我们可以回到表达置换关系的 $σ$ 矩阵中进行观察。
 
-<div style="text-align: center;">
+<div align="center">
  <img src="https://hackmd.io/_uploads/H1qPBw3O0.png" width="250"/>
 </div>
 
 针对这个置换关系，我们对其进行位置编码。（郭老师原文里，置换关系矩阵σ中，对位置的编号为1、2、3、4，而后位置矩阵编号为0、1、2、3。我们这里暂改为采用0、1、2、3）
 置换前的位置编码{ $i_{d}$ }：
 
-<div style="text-align: center;">
+<div align="center">
  <img src="https://hackmd.io/_uploads/HkZbUP3_C.png" width="235"/>
 </div>
 
 置换后的位置编码{ $σ$ }：
 
-<div style="text-align: center;">
+<div align="center">
  <img src="https://hackmd.io/_uploads/S1kNUwnuA.png" width="250"/>
 </div>
 
 根据我们在前面获得的**insight**，即**原始信息（W矩阵）与对应的位置信息，不论怎么变换，二者都是相对应的**。那么，我们就可以直接使用两个随机数，将位置与信息两个元素组合起来，然后再将三个向量相乘、从而压缩成一个向量。压缩后向量的连乘，必然满足置换关系。
 置换前向量 $f$ 与置换后向量 $g$ 表达如下：<br>
  
-<div style="text-align: center;">
+<div align="center">
  <img src="https://hackmd.io/_uploads/BJJrr1MYR.png" width="700"/>
 </div>
  
  不妨对于上述示例做个验证。置换前为：
  
-<div style="text-align: center;">
+<div align="center">
  <img src="https://hackmd.io/_uploads/SkurByfKA.png" width="700"/>
 </div>
 
 我们可以简单验算一下：<br>
 
-<div style="text-align: center;">
+<div align="center">
  <img src="https://hackmd.io/_uploads/B1yLSyMtC.png" width="700"/>
 </div>
 
